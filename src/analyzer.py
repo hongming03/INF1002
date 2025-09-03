@@ -47,12 +47,15 @@ class SentimentAnalyzer:
         return sum(scores) if scores else 0
     
     def split_into_sentences(self, text):
-        """
-        Splits a block of text into individual sentences.
-        """
-        sentences = re.split(r'[.!?]+', text)
-        return [s.strip() for s in sentences if s.strip()]
-    
+            """
+            Splits a block of text into individual sentences, being careful not to split
+            on periods within numbers or abbreviations.
+            """
+            # This regex looks for a period, exclamation mark, or question mark that is
+            # not preceded by a digit. It's a more robust way to handle sentence splitting.
+            sentences = re.split(r'(?<!\d)[.!?]+\s*', text)
+            return [s.strip() for s in sentences if s.strip()]
+
     def analyze_text(self, text):
         """
         Performs a full sentiment analysis on the entire text.
