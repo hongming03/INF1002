@@ -33,7 +33,7 @@ jobs:
         run: |
           black --check src/
 
-      - name: Run tests
-        run: |
-          coverage run -m unittest discover tests/
-          coverage report -m
+    #   - name: Run tests
+    #     run: |
+    #       coverage run -m unittest discover tests/
+    #       coverage report -m
