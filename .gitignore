@@ -1,2 +1,3 @@
 .pytest_cache/
 .vscode/
+data/dataset/test.ft.txt
