@@ -20,15 +20,12 @@ def home():
 
 @app.route("/product/<pid>")
 def product(pid):
-    # Get reviews (pandas dataframe) and average score for the selected product
     avg_score, product_reviews = review_data.get_reviews_by_product(pid)
 
-    # Count the number of sentiments that is positive, neutral, and negative
     positive = len(product_reviews[product_reviews["SentimentScore"] > 0])
     neutral = len(product_reviews[product_reviews["SentimentScore"] == 0])
     negative = len(product_reviews[product_reviews["SentimentScore"] < 0])
 
-    # Prepare summary dictionary
     sentiment_summary = {
         "average_score": round(avg_score, 2),
         "positive": positive,
@@ -36,39 +33,37 @@ def product(pid):
         "negative": negative
     }
 
-    # Convert reviews to list of dicts for Jinja rendering
     reviews = product_reviews.to_dict(orient="records")
-
-    # Generate chart and get filename
     chart_filename = generate_sentiment_bar_chart(positive, neutral, negative, f"{pid}_sentiment_chart.png")
 
-    # Render the product.html template with all data
+    product_ids = review_data.get_product_ids()
+
     return render_template(
-    "product.html",
-    product_id=pid,
-    sentiment_summary=sentiment_summary,
-    reviews=reviews,
-    chart_filename=chart_filename
+        "index.html",
+        product_id=pid,
+        sentiment_summary=sentiment_summary,
+        reviews=reviews,
+        chart_filename=chart_filename,
+        product_ids=product_ids
     )
 
-@app.route("/user_review/<userid>")
-def user_review(userid):
+@app.route("/user_review/<profilename>")
+def user_review(profilename):
     if review_data.reviews is None:
         review_data.load_data()
 
     analyzer = SentimentAnalyzer()
-    user_reviews_df = review_data.get_reviews_by_user(userid)
+    user_reviews_df = review_data.get_reviews_by_user(profilename)
     reviews = user_reviews_df.to_dict(orient="records")
 
     analysis = analyze_sentences(user_reviews_df["Text"].tolist(), analyzer)
 
     return render_template(
         "user_reviews.html",
-        userid=userid,
+        profilename=profilename,
         reviews=reviews,
         **analysis
     )
-
 
 if __name__ == "__main__":
     print("Starting Flask application...")

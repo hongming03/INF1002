@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import os
@@ -9,12 +12,15 @@ def generate_sentiment_bar_chart(positive, neutral, negative, output_filename):
 
     plt.style.use('seaborn-v0_8')
     fig, ax = plt.subplots()
-    ax.bar(categories, counts, color=colors)
-    ax.set_ylabel('Number of Reviews')
-    ax.set_title('Review Sentiment Distribution')
 
-    # Force Y-axis to show only whole numbers
+    ax.bar(categories, counts, color=colors)
+    ax.set_ylabel('Number of Reviews', color='black')
+    ax.set_title('Review Sentiment Distribution', color='black')
+
     ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+    ax.tick_params(colors='black')
+    for spine in ax.spines.values():
+        spine.set_color('black')
 
     plt.tight_layout()
 
@@ -22,6 +28,6 @@ def generate_sentiment_bar_chart(positive, neutral, negative, output_filename):
     os.makedirs(static_dir, exist_ok=True)
 
     output_path = os.path.join(static_dir, output_filename)
-    plt.savefig(output_path)
+    plt.savefig(output_path, transparent=True)
     plt.close()
     return output_filename

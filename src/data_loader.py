@@ -25,10 +25,10 @@ class ReviewData:
             self.load_data()
         return self.reviews["ProductId"].unique().tolist()
     
-    def get_reviews_by_user(self, user_id):
+    def get_reviews_by_user(self, profile_name):
         if self.reviews is None:
             self.load_data()
-        return self.reviews[self.reviews["UserId"] == user_id]
+        return self.reviews[self.reviews["ProfileName"] == profile_name]
 
     # Returns average sentiment score and all reviews for a given product ID
     def get_reviews_by_product(self, product_id):

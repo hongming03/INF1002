@@ -1,0 +1,40 @@
+<!-- Clean Navbar with JS-based Product Selector -->
+<nav class="navbar navbar-expand-lg fixed-top" style="
+  background-color: #0b1a2f;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 1030;
+">
+
+  <div class="container-fluid">
+    <div class="navbar-wrapper">
+      <a class="navbar-brand" href="#">Amazon Sentiment Analysis</a>
+    </div>
+    <div class="collapse navbar-collapse justify-content-end" id="navigation">
+      <form class="d-flex align-items-center" onsubmit="goToProductFromNavbar(); return false;" style="margin-bottom: 0;">
+        <select id="navbarProductSelect" class="form-select me-2" style="
+            width: 220px;
+            padding: 6px 12px;
+            border-radius: 0.375rem;
+            border: 1px solid #ced4da;
+            background-color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.075);
+            ">
+        {% for pid in product_ids %}
+        <option value="{{ pid }}">{{ pid }}</option>
+        {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-primary">Analyze</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<script>
+  function goToProductFromNavbar() {
+    const pid = document.getElementById("navbarProductSelect").value;
+    window.location.href = `/product/${pid}`;
+  }
+</script>
