@@ -24,13 +24,17 @@
 
     <h5>Sample Reviews</h5>
     <ul class="list-group">
-      {% for review in reviews %}
-      <li class="list-group-item">
-        <p>{{ review.Text }}</p>
-        <small class="text-muted">Score: {{ review.SentimentScore }}</small>
-      </li>
-      {% endfor %}
+        {% for review in reviews %}
+        <li class="list-group-item">
+            <a href="/user_review/{{ review.UserId }}" class="text-decoration-none">
+            <p>{{ review.Text }}</p>
+            <small class="text-muted">Score: {{ review.SentimentScore }} | User: {{ review.UserId }}</small>
+            </a>
+        </li>
+        {% endfor %}
     </ul>
+
+
 
     <a href="/" class="btn btn-link mt-4">← Back to Home</a>
   </div>
