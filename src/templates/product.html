@@ -21,7 +21,10 @@
         </ul>
       </div>
     </div>
-
+    <div class="text-center mb-4">
+        <h5>Sentiment Distribution</h5>
+        <img src="{{ url_for('static', filename=chart_filename) }}" alt="Sentiment Chart" class="img-fluid" style="max-width: 500px;">
+    </div>
     <h5>Sample Reviews</h5>
     <ul class="list-group">
         {% for review in reviews %}
@@ -33,7 +36,6 @@
         </li>
         {% endfor %}
     </ul>
-
 
 
     <a href="/" class="btn btn-link mt-4">← Back to Home</a>

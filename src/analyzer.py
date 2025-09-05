@@ -1,5 +1,6 @@
 from afinn import Afinn
 
+# Isolated in anazlyer.py such that in the future, if we want to swap out Afinn for another library,
 class SentimentAnalyzer:
     def __init__(self):
         # Initialize Afinn with English
