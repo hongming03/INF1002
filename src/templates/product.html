@@ -1,0 +1,38 @@
+<!-- templates/product.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Product Details</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4">
+  <div class="container">
+    <h1 class="mb-4">Product Details</h1>
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <h4>Product ID: {{ product_id }}</h4>
+        <ul>
+          <li><strong>Average Sentiment Score:</strong> {{ sentiment_summary.average_score }}</li>
+          <li class="text-success"><strong>Positive Reviews:</strong> {{ sentiment_summary.positive }}</li>
+          <li class="text-secondary"><strong>Neutral Reviews:</strong> {{ sentiment_summary.neutral }}</li>
+          <li class="text-danger"><strong>Negative Reviews:</strong> {{ sentiment_summary.negative }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <h5>Sample Reviews</h5>
+    <ul class="list-group">
+      {% for review in reviews %}
+      <li class="list-group-item">
+        <p>{{ review.Text }}</p>
+        <small class="text-muted">Score: {{ review.SentimentScore }}</small>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <a href="/" class="btn btn-link mt-4">← Back to Home</a>
+  </div>
+</body>
+</html>

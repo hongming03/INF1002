@@ -1,262 +1,43 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentiment Analysis System</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0d1117;
-        }
-
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid #3b82f6;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Product Sentiment</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-
-<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen p-4">
-    <div class="container mx-auto max-w-4xl bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-700">
-        <h1 class="text-4xl font-bold text-center mb-6 text-gray-200">Sentiment Analyzer</h1>
-        <p class="text-center text-gray-400 mb-8">
-            The AFINN dictionary and dataset path are pre-configured in the backend. You can analyze custom text or run the full dataset analysis.
-        </p>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-            <!-- Text Analysis Section -->
-            <div class="bg-gray-700 p-6 rounded-lg shadow-lg">
-                <h2 class="text-2xl font-bold mb-4 text-blue-400">Text Analysis</h2>
-                <form id="text-analysis-form" class="space-y-4">
-                    <textarea id="text-input"
-                        class="w-full h-48 p-4 bg-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                        placeholder="Paste your text here..."></textarea>
-                    <button type="submit" id="text-analyze-button"
-                        class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-all duration-200 ease-in-out flex items-center justify-center">
-                        <span id="text-button-text">Analyze Text</span>
-                        <div id="text-loading-spinner" class="spinner ml-2 hidden"></div>
-                    </button>
-                </form>
-            </div>
-
-            <!-- Dataset Analysis Section -->
-            <div class="bg-gray-700 p-6 rounded-lg shadow-lg">
-                <h2 class="text-2xl font-bold mb-4 text-purple-400">Dataset Analysis</h2>
-                <form id="dataset-analysis-form" class="space-y-4">
-                    <p class="text-sm text-gray-400">This will analyze the pre-configured dataset file.</p>
-                    <button type="submit" id="dataset-analyze-button"
-                        class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md transition-all duration-200 ease-in-out flex items-center justify-center">
-                        <span id="dataset-button-text">Analyze Dataset</span>
-                        <div id="dataset-loading-spinner" class="spinner ml-2 hidden"></div>
-                    </button>
-                </form>
-            </div>
-
-        </div>
-
-        <!-- Analysis Results Section -->
-        <div id="results" class="mt-8 hidden">
-            <!-- Overall Summary (for Text Analysis) -->
-            <div id="overall-summary" class="bg-gray-700 p-6 rounded-lg shadow-inner mb-6 hidden">
-                <h2 class="text-2xl font-semibold mb-4 text-blue-400">Analysis Summary</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                    <div>
-                        <p class="text-sm text-gray-400">Total Score</p>
-                        <p id="total-score" class="text-2xl font-bold"></p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-400">Average Score</p>
-                        <p id="avg-score" class="text-2xl font-bold"></p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-400">Sentence Count</p>
-                        <p id="num-sentences" class="text-2xl font-bold"></p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Most Positive/Negative Reviews (for Dataset Analysis) -->
-            <div id="dataset-extremes" class="mt-6 space-y-6 hidden">
-                <h2 class="text-2xl font-semibold mb-4 text-purple-400">Most Positive/Negative Reviews</h2>
-                <div class="bg-gray-700 p-6 rounded-lg shadow-inner">
-                    <p class="text-sm text-gray-400">Most Positive Review</p>
-                    <div id="most-positive-review" class="bg-gray-800 p-4 rounded-md"></div>
-                </div>
-                <div class="bg-gray-700 p-6 rounded-lg shadow-inner">
-                    <p class="text-sm text-gray-400">Most Negative Review</p>
-                    <div id="most-negative-review" class="bg-gray-800 p-4 rounded-md"></div>
-                </div>
-            </div>
-
-            <!-- Most Positive/Negative Sections (for Text Analysis) -->
-            <div id="text-extremes" class="mt-6 space-y-6 hidden">
-                <div class="bg-gray-700 p-6 rounded-lg shadow-inner">
-                    <h2 class="text-2xl font-semibold mb-4 text-green-400">Most Positive Sentences/Windows</h2>
-                    <p class="text-sm text-gray-400 mb-2">Sentence</p>
-                    <div id="most-positive-sentence" class="bg-gray-800 p-4 rounded-md"></div>
-                    <p class="text-sm text-gray-400 mt-4 mb-2">Sliding Window</p>
-                    <div id="most-positive-window" class="bg-gray-800 p-4 rounded-md"></div>
-                </div>
-                <div class="bg-gray-700 p-6 rounded-lg shadow-inner">
-                    <h2 class="text-2xl font-semibold mb-4 text-red-400">Most Negative Sentences/Windows</h2>
-                    <p class="text-sm text-gray-400 mb-2">Sentence</p>
-                    <div id="most-negative-sentence" class="bg-gray-800 p-4 rounded-md"></div>
-                    <p class="text-sm text-gray-400 mt-4 mb-2">Sliding Window</p>
-                    <div id="most-negative-window" class="bg-gray-800 p-4 rounded-md"></div>
-                </div>
-            </div>
-
-            <!-- Detailed Sentence Breakdown (for Text Analysis) -->
-            <div id="sentence-breakdown" class="mt-6 bg-gray-700 p-6 rounded-lg shadow-inner hidden">
-                <h2 class="text-2xl font-semibold mb-4 text-yellow-400">Sentence Breakdown</h2>
-                <div id="sentence-list" class="space-y-4"></div>
-            </div>
-        </div>
-    </div>
+<body class="p-4">
+  <div class="container">
+    <h1 class="mb-4">Amazon Product Sentiment</h1>
+    <form id="productForm" class="mb-3">
+      <select name="product_id" id="productSelect" class="form-select mb-3">
+        {% for pid in product_ids %}
+        <option value="{{ pid }}">{{ pid }}</option>
+        {% endfor %}
+      </select>
+      <button type="button" class="btn btn-primary" onclick="goToProduct()">Analyze</button>
+    </form>
 
     <script>
-        document.getElementById('text-analysis-form').addEventListener('submit', async function (event) {
-            event.preventDefault();
-            await analyze('text');
-        });
-
-        document.getElementById('dataset-analysis-form').addEventListener('submit', async function (event) {
-            event.preventDefault();
-            await analyze('dataset');
-        });
-
-        async function analyze(type) {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.classList.add('hidden');
-            document.getElementById('overall-summary').classList.add('hidden');
-            document.getElementById('text-extremes').classList.add('hidden');
-            document.getElementById('sentence-breakdown').classList.add('hidden');
-            document.getElementById('dataset-extremes').classList.add('hidden');
-
-            let buttonId, spinnerId, url;
-            const formData = new FormData();
-
-            if (type === 'text') {
-                buttonId = 'text-analyze-button';
-                spinnerId = 'text-loading-spinner';
-                url = '/analyze-text';
-                const textInput = document.getElementById('text-input').value;
-                if (!textInput) {
-                    alert('Please enter text to analyze.');
-                    return;
-                }
-                formData.append('text', textInput);
-            } else {
-                buttonId = 'dataset-analyze-button';
-                spinnerId = 'dataset-loading-spinner';
-                url = '/analyze-dataset';
-            }
-
-            const button = document.getElementById(buttonId);
-            const buttonText = button.querySelector('span');
-            const spinner = document.getElementById(spinnerId);
-
-            button.disabled = true;
-            buttonText.textContent = 'Analyzing...';
-            spinner.classList.remove('hidden');
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Network response was not ok');
-                }
-
-                const data = await response.json();
-                if (data.type === 'text_analysis') {
-                    displayTextResults(data);
-                } else if (data.type === 'dataset_analysis') {
-                    displayDatasetResults(data);
-                }
-
-            } catch (error) {
-                console.error('Error:', error);
-                resultsDiv.classList.remove('hidden');
-                resultsDiv.innerHTML = `<div class="p-4 bg-red-800 rounded-lg text-red-200">An error occurred: ${error.message}</div>`;
-            } finally {
-                button.disabled = false;
-                buttonText.textContent = 'Analyze ' + type.charAt(0).toUpperCase() + type.slice(1);
-                spinner.classList.add('hidden');
-            }
-        }
-
-        function displayDatasetResults(data) {
-            document.getElementById('results').classList.remove('hidden');
-            document.getElementById('dataset-extremes').classList.remove('hidden');
-
-            const posReview = data.most_positive_review;
-            const negReview = data.most_negative_review;
-
-            document.getElementById('most-positive-review').innerHTML = `
-                <p class="font-bold">Score: <span class="text-green-300">${posReview.score}</span></p>
-                <p class="mt-1">${posReview.text.length > 200 ? posReview.text.substring(0, 200) + '...' : posReview.text}</p>
-            `;
-
-            document.getElementById('most-negative-review').innerHTML = `
-                <p class="font-bold">Score: <span class="text-red-300">${negReview.score}</span></p>
-                <p class="mt-1">${negReview.text.length > 200 ? negReview.text.substring(0, 200) + '...' : negReview.text}</p>
-            `;
-        }
-
-        function displayTextResults(data) {
-            document.getElementById('results').classList.remove('hidden');
-            document.getElementById('overall-summary').classList.remove('hidden');
-            document.getElementById('text-extremes').classList.remove('hidden');
-            document.getElementById('sentence-breakdown').classList.add('hidden');
-
-            // Overall Summary
-            document.getElementById('total-score').textContent = data.overall.total_score;
-            document.getElementById('avg-score').textContent = data.overall.avg_score;
-            document.getElementById('num-sentences').textContent = data.overall.num_sentences;
-
-            // Extremes
-            document.getElementById('most-positive-sentence').innerHTML = `<p class="font-bold">Score: <span class="text-green-300">${data.most_positive_sentence ? data.most_positive_sentence[1] : 0}</span></p><p class="mt-1">${data.most_positive_sentence ? data.most_positive_sentence[0] : 'N/A'}</p>`;
-            document.getElementById('most-negative-sentence').innerHTML = `<p class="font-bold">Score: <span class="text-red-300">${data.most_negative_sentence ? data.most_negative_sentence[1] : 0}</span></p><p class="mt-1">${data.most_negative_sentence ? data.most_negative_sentence[0] : 'N/A'}</p>`;
-            document.getElementById('most-positive-window').innerHTML = `<p class="font-bold">Score: <span class="text-green-300">${data.most_positive_window ? data.most_positive_window.score : 0}</span></p><p class="mt-1">${data.most_positive_window ? data.most_positive_window.text : 'N/A'}</p>`;
-            document.getElementById('most-negative-window').innerHTML = `<p class="font-bold">Score: <span class="text-red-300">${data.most_negative_window ? data.most_negative_window.score : 0}</span></p><p class="mt-1">${data.most_negative_window ? data.most_negative_window.text : 'N/A'}</p>`;
-
-            // Sentence Breakdown
-            const sentenceList = document.getElementById('sentence-list');
-            sentenceList.innerHTML = '';
-            data.sentences.forEach(sentence => {
-                const item = document.createElement('div');
-                item.className = 'p-4 rounded-md border-l-4 ' + (
-                    sentence.score > 0 ? 'bg-green-900 border-green-500' :
-                    sentence.score < 0 ? 'bg-red-900 border-red-500' :
-                    'bg-gray-800 border-gray-500'
-                );
-                item.innerHTML = `<p class="text-lg font-medium">${sentence.text}</p><p class="text-sm mt-1 text-gray-400">Score: <span class="font-bold text-gray-200">${sentence.score}</span></p>`;
-                sentenceList.appendChild(item);
-            });
-        }
+      function goToProduct() {
+        const pid = document.getElementById("productSelect").value;
+        window.location.href = `/product/${pid}`;
+      }
     </script>
-</body>
 
+    {% if sentiment_summary %}
+    <div class="card mt-4">
+      <div class="card-body">
+        <h4>Sentiment Summary for {{ selected_product }}</h4>
+        <ul>
+          <li>Average Score: {{ sentiment_summary.average_score }}</li>
+          <li>Positive Reviews: {{ sentiment_summary.positive }}</li>
+          <li>Neutral Reviews: {{ sentiment_summary.neutral }}</li>
+          <li>Negative Reviews: {{ sentiment_summary.negative }}</li>
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</body>
 </html>
