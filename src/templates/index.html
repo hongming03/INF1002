@@ -14,10 +14,10 @@
           <li class="text-danger"><strong>Negative Posts:</strong> {{ sentiment_summary.negative }}</li>
         </ul>
         <h5 class="text-success mt-3">Most Positive Post</h5>
-        <p>{{ sentiment_summary.most_positive.Text }}</p>
+        <p>{{ sentiment_summary.most_positive.text }}</p>
         <small class="text-muted">Score: {{ sentiment_summary.most_positive.SentimentScore }}</small>
         <h5 class="text-danger mt-3">Most Negative Post</h5>
-        <p>{{ sentiment_summary.most_negative.Text }}</p>
+        <p>{{ sentiment_summary.most_negative.text }}</p>
         <small class="text-muted">Score: {{ sentiment_summary.most_negative.SentimentScore }}</small>
       </div>
     </div>
