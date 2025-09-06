@@ -1,54 +1,104 @@
-<!-- templates/user_reviews.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>User Reviews</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="p-4">
-  <div class="container">
-    <h1 class="mb-4">Reviews by User: {{ profilename }}</h1>
+{% extends "layouts/base.html" %}
 
-    <div class="card mb-4">
-      <div class="card-body">
-        <h5>Most Positive Sentence</h5>
-        <blockquote class="blockquote text-success">
-          <p>{{ most_positive.text }}</p>
-          <footer class="blockquote-footer">Score: {{ most_positive.score }}</footer>
-        </blockquote>
+{% block title %} User Profile {% endblock %} 
 
-        <h5>Most Negative Sentence</h5>
-        <blockquote class="blockquote text-danger">
-          <p>{{ most_negative.text }}</p>
-          <footer class="blockquote-footer">Score: {{ most_negative.score }}</footer>
-        </blockquote>
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+  <div class="content">
+    <div class="row">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="title">Reviews by User: {{ profilename }}</h5>
+          </div>
+
+          <div class="card-body">
+            <!-- User Review Content -->
+            <div class="card mb-4">
+              <div class="card-body">
+                <h5 class="card-title">Most Positive Sentence</h5>
+                <blockquote class="blockquote text-success">
+                  <p>{{ most_positive.text }}</p>
+                  <footer class="blockquote-footer">Score: {{ most_positive.score }}</footer>
+                </blockquote>
+
+                <h5 class="card-title mt-4">Most Negative Sentence</h5>
+                <blockquote class="blockquote text-danger">
+                  <p>{{ most_negative.text }}</p>
+                  <footer class="blockquote-footer">Score: {{ most_negative.score }}</footer>
+                </blockquote>
+              </div>
+            </div>
+
+            <div class="card mb-4">
+              <div class="card-body">
+                <h5 class="card-title">Most Positive Paragraph Segment</h5>
+                <p class="text-success">{{ most_positive_segment.text }}</p>
+                <small class="text-muted">Score: {{ most_positive_segment.score }}</small>
+
+                <h5 class="card-title mt-4">Most Negative Paragraph Segment</h5>
+                <p class="text-danger">{{ most_negative_segment.text }}</p>
+                <small class="text-muted">Score: {{ most_negative_segment.score }}</small>
+              </div>
+            </div>
+
+            <div class="card mb-4">
+              <div class="card-body">
+                <h5 class="card-title">All Reviews</h5>
+                <ul class="list-group">
+                  {% for review in reviews %}
+                  <li class="list-group-item" style="color: #212529; background-color: inherit;">
+                    <p>{{ review.Text }}</p>
+                    <small class="text-muted">Product: {{ review.ProductId }} | Score: {{ review.SentimentScore }}</small>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+
+
+            <a href="/" class="btn btn-link mt-4">← Back to Home</a>
+          </div>
+         
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card card-user">
+          <div class="card-body">
+            <p class="card-text">
+              <div class="author">
+                <div class="block block-one"></div>
+                <div class="block block-two"></div>
+                <div class="block block-three"></div>
+                <div class="block block-four"></div>
+                <a href="javascript:void(0)">
+                  <img class="avatar" src="{{ url_for('static', filename='img/emilyz.jpg') }}" alt="...">
+                  <h5 class="title">{{ profilename }}</h5>
+                </a>
+                <p class="description">
+                  Reviewer of Amazon Product
+                </p>
+              </div>
+            </p>
+            <div class="card-description">
+            {% if reviews %}
+              "{{ reviews[0].Text }}"
+              <br>
+              <small class="text-muted">Product: {{ reviews[0].ProductId }} | Score: {{ reviews[0].SentimentScore }}</small>
+            {% else %}
+              <em>No reviews available.</em>
+            {% endif %}
+          </div>
+          </div>
+        </div>
       </div>
     </div>
-
-    <div class="card mb-4">
-      <div class="card-body">
-        <h5>Most Positive Paragraph Segment</h5>
-        <p class="text-success">{{ most_positive_segment.text }}</p>
-        <small class="text-muted">Score: {{ most_positive_segment.score }}</small>
-
-        <h5 class="mt-4">Most Negative Paragraph Segment</h5>
-        <p class="text-danger">{{ most_negative_segment.text }}</p>
-        <small class="text-muted">Score: {{ most_negative_segment.score }}</small>
-      </div>
-    </div>
-
-    <h4>All Reviews</h4>
-    <ul class="list-group">
-      {% for review in reviews %}
-      <li class="list-group-item">
-        <p>{{ review.Text }}</p>
-        <small class="text-muted">Product: {{ review.ProductId }} | Score: {{ review.SentimentScore }}</small>
-      </li>
-      {% endfor %}
-    </ul>
-
-    <a href="/" class="btn btn-link mt-4">← Back to Home</a>
   </div>
-</body>
-</html>
+
+<!-- {% endblock content %} -->
+
+<!-- Specific Page JS goes HERE  -->
+<!-- {% block javascripts %}{% endblock javascripts %} -->

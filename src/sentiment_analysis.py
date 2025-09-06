@@ -2,6 +2,8 @@ import re
 from typing import List, Dict, Optional
 from analyzer import SentimentAnalyzer
 
+ # Split business logic with the afinn library
+
 def analyze_sentences(texts: List[str], analyzer: SentimentAnalyzer, window_size: int = 3) -> Dict[str, Optional[Dict[str, float]]]:
     """
     Splits texts into sentences, scores them, and returns most positive/negative sentences and segments.

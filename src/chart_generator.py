@@ -24,10 +24,22 @@ def generate_sentiment_bar_chart(positive, neutral, negative, output_filename):
 
     plt.tight_layout()
 
-    static_dir = os.path.join(os.path.dirname(__file__), "static")
+    # static_dir = os.path.join(os.path.dirname(__file__), "static", "img", "matplotlib")
+    # os.makedirs(static_dir, exist_ok=True)
+
+    # output_path = os.path.join(static_dir, output_filename)
+    # plt.savefig(output_path, transparent=True)
+    # plt.close()
+    # return output_filename
+    # Save into static/img/matplotlib
+    
+    static_subdir = os.path.join("static", "img", "matplotlib")
+    static_dir = os.path.join(os.path.dirname(__file__), static_subdir)
     os.makedirs(static_dir, exist_ok=True)
 
     output_path = os.path.join(static_dir, output_filename)
     plt.savefig(output_path, transparent=True)
     plt.close()
-    return output_filename
+
+    # return relative path for url_for
+    return f"img/matplotlib/{output_filename}"

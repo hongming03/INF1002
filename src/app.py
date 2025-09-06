@@ -47,8 +47,11 @@ def product(pid):
         product_ids=product_ids
     )
 
-@app.route("/user_review/<profilename>")
+@app.route("/user_reviews/<profilename>")
 def user_review(profilename):
+
+    product_ids = review_data.get_product_ids()
+
     if review_data.reviews is None:
         review_data.load_data()
 
@@ -62,8 +65,10 @@ def user_review(profilename):
         "user_reviews.html",
         profilename=profilename,
         reviews=reviews,
-        **analysis
+        **analysis,
+        product_ids=product_ids
     )
+
 
 if __name__ == "__main__":
     print("Starting Flask application...")
