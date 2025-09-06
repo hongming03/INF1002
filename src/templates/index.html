@@ -55,42 +55,58 @@
       </div>
     </div>
   </div>
+  <div class="card-body">
+  <table class="table tablesorter">
+    <thead class="text-primary">
+      <tr>
+        <th>User</th>
+        <th>Sentiment Score</th>
+        <th>Review</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for review in reviews %}
+      <tr>
+        <td><a href="/user_reviews/{{ review.ProfileName }}">{{ review.ProfileName }}</a></td>
+        <td>{{ review.SentimentScore }}</td>
+        <td>{{ review.Text }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
-  <div class="row">           
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header">
-          <h4 class="card-title">Sentiment Summary</h4>
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table tablesorter">
-              <thead class="text-primary">
-                <tr>
-                  <th>User</th>
-                  <th>Sentiment Score</th>
-                  <th>Review</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for review in reviews %}
-                <tr>
-                  <td>
-                    <a href="/user_reviews/{{ review.ProfileName }}" class="text-decoration-none">
-                      {{ review.ProfileName }}
-                    </a>
-                  </td>
-                  <td>{{ review.SentimentScore }}</td>
-                  <td>{{ review.Text }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- <div class="card-body">
+  {% if reviews|length > 0 %}
+  <div class="table-responsive">
+    <table class="table tablesorter">
+      <thead class="text-primary">
+        <tr>
+          <th>User</th>
+          <th>Sentiment Score</th>
+          <th>Review</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for review in reviews %}
+        <tr>
+          <td>
+            <a href="/user_reviews/{{ review.ProfileName }}" class="text-decoration-none">
+              {{ review.ProfileName }}
+            </a>
+          </td>
+          <td>{{ review.SentimentScore }}</td>
+          <td>{{ review.Text }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+  {% else %}
+  <p class="text-muted">No reviews available.</p>
+  {% endif %}
+</div> -->
+
 
   
 </div>
