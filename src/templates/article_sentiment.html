@@ -1,0 +1,78 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Article {% endblock %} 
+
+{% block content %}
+
+<div class="content">
+  <div class="row">
+    <!-- Main Article Content -->
+    <div class="col-md-8">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="title">Article: {{ article.title }}</h5>
+        </div>
+
+        <div class="card-body">
+          <!-- Sentiment Analysis -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="card-title">Most Positive Sentence</h5>
+              <blockquote class="blockquote text-success">
+                <p>{{ most_positive.text }}</p>
+                <footer class="blockquote-footer">Score: {{ most_positive.score }}</footer>
+              </blockquote>
+
+              <h5 class="card-title mt-4">Most Negative Sentence</h5>
+              <blockquote class="blockquote text-danger">
+                <p>{{ most_negative.text }}</p>
+                <footer class="blockquote-footer">Score: {{ most_negative.score }}</footer>
+              </blockquote>
+            </div>
+          </div>
+
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="card-title">Article Text</h5>
+              <p>{{ article.text }}</p>
+              <small class="text-muted">Source: {{ article.source }} | Date: {{ article.date }}</small>
+            </div>
+          </div>
+
+          <a href="/" class="btn btn-link mt-4">← Back to Home</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side Card -->
+    <div class="col-md-4">
+      <div class="card card-user h-100">
+        <div class="card-body">
+          <p class="card-text">
+            <div class="author text-center">
+              <div class="block block-one"></div>
+              <div class="block block-two"></div>
+              <div class="block block-three"></div>
+              <div class="block block-four"></div>
+              <a href="javascript:void(0)">
+                <img class="avatar" src="{{ url_for('static', filename='img/emilyz.jpg') }}" alt="...">
+                <h5 class="title">{{ article.subject }}</h5>
+              </a>
+              <p class="description">
+                Source: {{ article.source }}<br>
+                Date: {{ article.date }}
+              </p>
+            </div>
+          </p>
+          <div class="card-description text-center">
+            <em>Click the button below to view the full article</em>
+            <br>
+            <a href="{{ article.url }}" target="_blank" class="btn btn-primary btn-sm mt-2">View Original Article</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}

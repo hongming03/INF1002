@@ -14,21 +14,22 @@
         <div class="col-12">
           <div class="card mb-4">
             <div class="card-body">
-              <h4>Product ID: {{ product_id }}</h4>
-              <ul>
-                <li><strong>Average Sentiment Score:</strong> {{ sentiment_summary.average_score }}</li>
-                <li class="text-success"><strong>Positive Reviews:</strong> {{ sentiment_summary.positive }}</li>
-                <li class="text-secondary"><strong>Neutral Reviews:</strong> {{ sentiment_summary.neutral }}</li>
-                <li class="text-danger"><strong>Negative Reviews:</strong> {{ sentiment_summary.negative }}</li>
-              </ul>
-              <!-- Most Positive / Negative Review -->
-              <h5 class="card-title text-success mt-3">Most Positive Review</h5>
-              <p>{{ sentiment_summary.most_positive.Text }}</p>
-              <small class="text-muted">Score: {{ sentiment_summary.most_positive.SentimentScore }}</small>
+              <h4>Crypto: {{ crypto_id }}</h4>
+                <ul>
+                  <li><strong>Average Sentiment Score:</strong> {{ sentiment_summary.average_score }}</li>
+                  <li class="text-success"><strong>Positive Posts:</strong> {{ sentiment_summary.positive }}</li>
+                  <li class="text-secondary"><strong>Neutral Posts:</strong> {{ sentiment_summary.neutral }}</li>
+                  <li class="text-danger"><strong>Negative Posts:</strong> {{ sentiment_summary.negative }}</li>
+                </ul>
 
-              <h5 class="card-title text-danger mt-3">Most Negative Review</h5>
-              <p>{{ sentiment_summary.most_negative.Text }}</p>
-              <small class="text-muted">Score: {{ sentiment_summary.most_negative.SentimentScore }}</small>
+                <h5 class="card-title text-success mt-3">Most Positive Post</h5>
+                <p>{{ sentiment_summary.most_positive.Text }}</p>
+                <small class="text-muted">Score: {{ sentiment_summary.most_positive.SentimentScore }}</small>
+
+                <h5 class="card-title text-danger mt-3">Most Negative Post</h5>
+                <p>{{ sentiment_summary.most_negative.Text }}</p>
+                <small class="text-muted">Score: {{ sentiment_summary.most_negative.SentimentScore }}</small>
+
 
             </div>
           </div>
@@ -68,21 +69,28 @@
   <table class="table tablesorter">
     <thead class="text-primary">
       <tr>
-        <th>User</th>
+        <th>Date</th>
         <th>Sentiment Score</th>
-        <th>Review</th>
+        <th>Article</th>
+        <th>Source</th>
       </tr>
     </thead>
     <tbody>
-      {% for review in reviews %}
+      {% for article in articles %}
       <tr>
-        <td><a href="/user_reviews/{{ review.ProfileName }}">{{ review.ProfileName }}</a></td>
-        <td>{{ review.SentimentScore }}</td>
-        <td>{{ review.Text }}</td>
+        <td>{{ article.date }}</td>
+        <td>{{ article.SentimentScore }}</td>
+        <td>
+          <a href="/article/{{ article.url | urlencode }}">
+            {{ article.text }}
+          </a>
+        </td>
+        <td>{{ article.source }}</td>
       </tr>
       {% endfor %}
     </tbody>
-  </table>
+</table>
+
 </div>
 
   <!-- <div class="card-body">

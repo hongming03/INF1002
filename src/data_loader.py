@@ -2,40 +2,42 @@ import pandas as pd
 from analyzer import SentimentAnalyzer
 import os
 
-class ReviewData:
+class CryptoNewsData:
     def __init__(self, csv_path=None):
         if csv_path is None:
             BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            csv_path = os.path.join(BASE_DIR, "data", "Reviews_less.csv")
+            csv_path = os.path.join(BASE_DIR, "data", "cryptonews.csv")
         self.csv_path = csv_path
         self.analyzer = SentimentAnalyzer()
-        self.reviews = None
+        self.news = None
 
-    # Create a new column called SentimentScore and populate it with Afinn.score
+    # Create a new Sentiment Column with Afinn scores
     def load_data(self):
         # Load CSV
-        self.reviews = pd.read_csv(self.csv_path)
-        self.reviews["Text"] = self.reviews["Text"].astype(str)
-        # Compute sentiment scores
-        self.reviews["SentimentScore"] = self.reviews["Text"].apply(self.analyzer.score)
+        self.news = pd.read_csv(self.csv_path)
 
-    # Returns a list of unique product IDs
-    def get_product_ids(self):
-        if self.reviews is None:
+        # Ensure text is string
+        self.news["text"] = self.news["text"].astype(str)
+
+        # Use Afinn to compute sentiment score
+        self.news["SentimentScore"] = self.news["text"].apply(self.analyzer.score)
+
+    # Returns a list of unique subjects (instead of ProductIds)
+    def get_subjects(self):
+        if self.news is None:
             self.load_data()
-        return self.reviews["ProductId"].unique().tolist()
+        return self.news["subject"].unique().tolist()
     
-    def get_reviews_by_user(self, profile_name):
-        if self.reviews is None:
+    # Returns all news from a given source
+    def get_news_by_source(self, source):
+        if self.news is None:
             self.load_data()
-        return self.reviews[self.reviews["ProfileName"] == profile_name]
+        return self.news[self.news["source"] == source]
 
-    # Returns average sentiment score and all reviews for a given product ID
-    def get_reviews_by_product(self, product_id):
-        if self.reviews is None:
+    # Returns average sentiment score and articles for a given subject
+    def get_news_by_subject(self, subject):
+        if self.news is None:
             self.load_data()
-
-        # Retrieving the reviews for the specified product ID
-        product_reviews = self.reviews[self.reviews["ProductId"] == product_id]
-        avg_score = product_reviews["SentimentScore"].mean()
-        return avg_score, product_reviews
+        subject_news = self.news[self.news["subject"] == subject]
+        avg_score = subject_news["SentimentScore"].mean()
+        return avg_score, subject_news
