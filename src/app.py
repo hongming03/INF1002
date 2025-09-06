@@ -4,8 +4,8 @@ from data_loader import CryptoNewsData
 import os
 import sys
 from sentiment_analysis import analyze_sentences
-from chart_generator import generate_sentiment_line_chart, generate_sentiment_count_area_chart
 from urllib.parse import unquote
+import json
 
 from analyzer import SentimentAnalyzer
 
@@ -17,17 +17,33 @@ crypto_data = CryptoNewsData()
 @app.route("/")
 def home():
     subjects = crypto_data.get_subjects()
-    return render_template("index.html", subjects=subjects)
+
+    # Add empty defaults so template doesn't break
+    avg_chart_data = {"dates": [], "values": []}
+    area_chart_data = {"dates": [], "positive": [], "neutral": [], "negative": []}
+
+    return render_template(
+        "index.html",
+        subjects=subjects,
+        avg_chart_data=avg_chart_data,
+        area_chart_data=area_chart_data
+    )
+
+import json
 
 @app.route("/subject/<subj>")
 def subject(subj):
     avg_score, subject_news = crypto_data.get_news_by_subject(subj)
 
+    # Convert date column to datetime and drop invalid rows
+    subject_news["date"] = pd.to_datetime(subject_news["date"], errors="coerce")
+    subject_news = subject_news.dropna(subset=["date"])
+
     positive = len(subject_news[subject_news["SentimentScore"] > 0])
     neutral = len(subject_news[subject_news["SentimentScore"] == 0])
     negative = len(subject_news[subject_news["SentimentScore"] < 0])
 
-    # Find most positive and most negative article
+    # Most positive and most negative
     most_positive = subject_news.loc[subject_news["SentimentScore"].idxmax()]
     most_negative = subject_news.loc[subject_news["SentimentScore"].idxmin()]
 
@@ -48,13 +64,37 @@ def subject(subj):
 
     articles = subject_news.to_dict(orient="records")
 
-    # Generate charts
-    avg_chart_filename = generate_sentiment_line_chart(
-        subject_news, f"{subj}_avg_sentiment.png"
-    )
-    area_chart_filename = generate_sentiment_count_area_chart(
-    subject_news, f"{subj}_sentiment_counts.png"
-    )
+    # Prepare JSON data for Chart.js
+    avg_chart_data = {
+        "dates": subject_news["date"].dt.strftime("%Y-%m-%d").tolist(),
+        "values": subject_news["SentimentScore"].tolist()
+    }
+
+    # Prepare counts for POS/NEU/NEG stacked chart
+    def categorize(score):
+        if score > 0:
+            return "Positive"
+        elif score < 0:
+            return "Negative"
+        else:
+            return "Neutral"
+
+    subject_news["SentimentCategory"] = subject_news["SentimentScore"].apply(categorize)
+    sentiment_counts = subject_news.groupby(
+        [subject_news["date"].dt.date, "SentimentCategory"]
+    ).size().unstack(fill_value=0)
+
+    for cat in ["Positive", "Neutral", "Negative"]:
+        if cat not in sentiment_counts:
+            sentiment_counts[cat] = 0
+    sentiment_counts = sentiment_counts[["Positive", "Neutral", "Negative"]]
+
+    area_chart_data = {
+        "dates": [d.strftime("%Y-%m-%d") for d in sentiment_counts.index],
+        "Positive": sentiment_counts["Positive"].tolist(),
+        "Neutral": sentiment_counts["Neutral"].tolist(),
+        "Negative": sentiment_counts["Negative"].tolist()
+    }
 
     subjects = crypto_data.get_subjects()
 
@@ -63,11 +103,10 @@ def subject(subj):
         subject=subj,
         sentiment_summary=sentiment_summary,
         articles=articles,
-        chart_filename=avg_chart_filename,       # for avg sentiment line
-        area_chart_filename=area_chart_filename,  # for pos/neu/neg area chart
+        avg_chart_data=avg_chart_data,
+        area_chart_data=area_chart_data,
         subjects=subjects
     )
-
 
 @app.route("/article/<path:url_encoded>")
 def article_sentiment(url_encoded):

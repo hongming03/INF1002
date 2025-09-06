@@ -2,7 +2,6 @@
 
 {% block title %} Dashboard {% endblock %} 
 
-<!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
@@ -29,17 +28,14 @@
                 <h5 class="card-title text-danger mt-3">Most Negative Post</h5>
                 <p>{{ sentiment_summary.most_negative.Text }}</p>
                 <small class="text-muted">Score: {{ sentiment_summary.most_negative.SentimentScore }}</small>
-
-
             </div>
           </div>
         </div>
       </div>
     </div>
     {% endif %}
-
-
   </div>
+
   <div class="row">
     <div class="col-12">
       <div class="card card-chart">
@@ -52,92 +48,118 @@
           </div>
         </div>
         <div class="card-body">
-          <div class="chart-area text-center" style="height: auto; overflow: visible;">
-            {% if chart_filename %}
-              <!-- Existing average sentiment chart -->
-              <img src="{{ url_for('static', filename=chart_filename) }}" alt="Sentiment Chart" class="img-fluid" style="max-width: 100%; height: auto;">
-            {% else %}
-              <p class="text-muted">No chart available. Select a Crypto subject to view sentiment.</p>
-            {% endif %}
+          <!-- Average Sentiment Chart -->
+          <div class="chart-area text-center">
+            <canvas id="avgSentimentChart" height="200"></canvas>
           </div>
 
           <hr>
 
-          <div class="chart-area text-center" style="height: auto; overflow: visible;">
-            {% if area_chart_filename %}
-              <!-- New chart for positive/neutral/negative counts -->
-              <h5 class="card-category mt-3">Pos/Neu/Neg Over Time</h5>
-              <img src="{{ url_for('static', filename=area_chart_filename) }}" alt="POS/NEG/NEU Chart" class="img-fluid" style="max-width: 100%; height: auto;">
-            {% else %}
-              <p class="text-muted">No POS/NEG/NEU chart available.</p>
-            {% endif %}
-
+          <!-- POS/NEU/NEG Area Chart -->
+          <div class="chart-area text-center">
+            <h5 class="card-category mt-3">Pos/Neu/Neg Over Time</h5>
+            <canvas id="sentimentAreaChart" height="200"></canvas>
           </div>
         </div>
-
       </div>
     </div>
   </div>
+
   <div class="card-body">
-  <table class="table tablesorter">
-    <thead class="text-primary">
-      <tr>
-        <th>Date</th>
-        <th>Sentiment Score</th>
-        <th>Article</th>
-        <th>Source</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for article in articles %}
-      <tr>
-        <td>{{ article.date }}</td>
-        <td>{{ article.SentimentScore }}</td>
-        <td>
-          <a href="/article/{{ article.url | urlencode }}">
-            {{ article.text }}
-          </a>
-        </td>
-        <td>{{ article.source }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-</table>
-
-</div>
-
-  <!-- <div class="card-body">
-  {% if reviews|length > 0 %}
-  <div class="table-responsive">
     <table class="table tablesorter">
       <thead class="text-primary">
         <tr>
-          <th>User</th>
+          <th>Date</th>
           <th>Sentiment Score</th>
-          <th>Review</th>
+          <th>Article</th>
+          <th>Source</th>
         </tr>
       </thead>
       <tbody>
-        {% for review in reviews %}
+        {% for article in articles %}
         <tr>
+          <td>{{ article.date }}</td>
+          <td>{{ article.SentimentScore }}</td>
           <td>
-            <a href="/user_reviews/{{ review.ProfileName }}" class="text-decoration-none">
-              {{ review.ProfileName }}
+            <a href="/article/{{ article.url | urlencode }}">
+              {{ article.text }}
             </a>
           </td>
-          <td>{{ review.SentimentScore }}</td>
-          <td>{{ review.Text }}</td>
+          <td>{{ article.source }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-  {% else %}
-  <p class="text-muted">No reviews available.</p>
-  {% endif %}
-</div> -->
-
-
-  
 </div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Average Sentiment Line Chart
+  const avgData = {{ avg_chart_data | tojson }};
+  const ctxAvg = document.getElementById('avgSentimentChart').getContext('2d');
+  new Chart(ctxAvg, {
+      type: 'line',
+      data: {
+          labels: avgData.dates,
+          datasets: [{
+              label: 'Average Sentiment',
+              data: avgData.values,
+              borderColor: 'blue',
+              backgroundColor: 'rgba(0,0,255,0.1)',
+              fill: true
+          }]
+      },
+      options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: 'black' } } },
+          scales: {
+              x: { ticks: { color: 'black' } },
+              y: { ticks: { color: 'black' } }
+          }
+      }
+  });
+
+  // POS/NEU/NEG Stacked Area Chart
+  const areaData = {{ area_chart_data | tojson }};
+  const ctxArea = document.getElementById('sentimentAreaChart').getContext('2d');
+  new Chart(ctxArea, {
+      type: 'line',
+      data: {
+          labels: areaData.dates,
+          datasets: [
+              {
+                  label: 'Positive',
+                  data: areaData.positive,
+                  borderColor: '#2ca02c',
+                  backgroundColor: 'rgba(44,160,44,0.3)',
+                  fill: true
+              },
+              {
+                  label: 'Neutral',
+                  data: areaData.neutral,
+                  borderColor: '#ff7f0e',
+                  backgroundColor: 'rgba(255,127,14,0.3)',
+                  fill: true
+              },
+              {
+                  label: 'Negative',
+                  data: areaData.negative,
+                  borderColor: '#d62728',
+                  backgroundColor: 'rgba(214,39,40,0.3)',
+                  fill: true
+              }
+          ]
+      },
+      options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: 'black' } } },
+          scales: {
+              x: { stacked: true, ticks: { color: 'black' } },
+              y: { stacked: true, ticks: { color: 'black' } }
+          }
+      }
+  });
+</script>
 {% endblock content %}
