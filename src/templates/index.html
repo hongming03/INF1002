@@ -46,22 +46,35 @@
         <div class="card-header">
           <div class="row">
             <div class="col-sm-6 text-left">
-              <h5 class="card-category">Total Shipments</h5>
-              <h2 class="card-title">Performance</h2>
+              <h5 class="card-category">Average Sentiment Over Time</h5>
+              <h2 class="card-title">Crypto News Sentiment</h2>
             </div>
           </div>
         </div>
         <div class="card-body">
           <div class="chart-area text-center" style="height: auto; overflow: visible;">
             {% if chart_filename %}
+              <!-- Existing average sentiment chart -->
               <img src="{{ url_for('static', filename=chart_filename) }}" alt="Sentiment Chart" class="img-fluid" style="max-width: 100%; height: auto;">
             {% else %}
-              <p class="text-muted">No chart available. Select a product to view performance.</p>
+              <p class="text-muted">No chart available. Select a Crypto subject to view sentiment.</p>
             {% endif %}
           </div>
 
+          <hr>
 
+          <div class="chart-area text-center" style="height: auto; overflow: visible;">
+            {% if area_chart_filename %}
+              <!-- New chart for positive/neutral/negative counts -->
+              <h5 class="card-category mt-3">Pos/Neu/Neg Over Time</h5>
+              <img src="{{ url_for('static', filename=area_chart_filename) }}" alt="POS/NEG/NEU Chart" class="img-fluid" style="max-width: 100%; height: auto;">
+            {% else %}
+              <p class="text-muted">No POS/NEG/NEU chart available.</p>
+            {% endif %}
+
+          </div>
         </div>
+
       </div>
     </div>
   </div>

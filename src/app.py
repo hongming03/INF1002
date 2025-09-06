@@ -4,7 +4,7 @@ from data_loader import CryptoNewsData
 import os
 import sys
 from sentiment_analysis import analyze_sentences
-from chart_generator import generate_sentiment_bar_chart
+from chart_generator import generate_sentiment_line_chart, generate_sentiment_count_area_chart
 from urllib.parse import unquote
 
 from analyzer import SentimentAnalyzer
@@ -47,8 +47,13 @@ def subject(subj):
     }
 
     articles = subject_news.to_dict(orient="records")
-    chart_filename = generate_sentiment_bar_chart(
-        positive, neutral, negative, f"{subj}_sentiment_chart.png"
+
+    # Generate charts
+    avg_chart_filename = generate_sentiment_line_chart(
+        subject_news, f"{subj}_avg_sentiment.png"
+    )
+    area_chart_filename = generate_sentiment_count_area_chart(
+    subject_news, f"{subj}_sentiment_counts.png"
     )
 
     subjects = crypto_data.get_subjects()
@@ -58,7 +63,8 @@ def subject(subj):
         subject=subj,
         sentiment_summary=sentiment_summary,
         articles=articles,
-        chart_filename=chart_filename,
+        chart_filename=avg_chart_filename,       # for avg sentiment line
+        area_chart_filename=area_chart_filename,  # for pos/neu/neg area chart
         subjects=subjects
     )
 
