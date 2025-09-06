@@ -5,8 +5,8 @@ import os
 class ReviewData:
     def __init__(self, csv_path=None):
         if csv_path is None:
-            # Always use the path relative to this file
-            csv_path = os.path.join(os.path.dirname(__file__), "Reviews_less.csv")
+            BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            csv_path = os.path.join(BASE_DIR, "data", "Reviews_less.csv")
         self.csv_path = csv_path
         self.analyzer = SentimentAnalyzer()
         self.reviews = None
