@@ -21,6 +21,15 @@
                 <li class="text-secondary"><strong>Neutral Reviews:</strong> {{ sentiment_summary.neutral }}</li>
                 <li class="text-danger"><strong>Negative Reviews:</strong> {{ sentiment_summary.negative }}</li>
               </ul>
+              <!-- Most Positive / Negative Review -->
+              <h5 class="card-title text-success mt-3">Most Positive Review</h5>
+              <p>{{ sentiment_summary.most_positive.Text }}</p>
+              <small class="text-muted">Score: {{ sentiment_summary.most_positive.SentimentScore }}</small>
+
+              <h5 class="card-title text-danger mt-3">Most Negative Review</h5>
+              <p>{{ sentiment_summary.most_negative.Text }}</p>
+              <small class="text-muted">Score: {{ sentiment_summary.most_negative.SentimentScore }}</small>
+
             </div>
           </div>
         </div>

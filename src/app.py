@@ -26,11 +26,23 @@ def product(pid):
     neutral = len(product_reviews[product_reviews["SentimentScore"] == 0])
     negative = len(product_reviews[product_reviews["SentimentScore"] < 0])
 
+    # Find most positive and most negative review
+    most_positive = product_reviews.loc[product_reviews["SentimentScore"].idxmax()]
+    most_negative = product_reviews.loc[product_reviews["SentimentScore"].idxmin()]
+
     sentiment_summary = {
-        "average_score": round(avg_score, 2),
-        "positive": positive,
-        "neutral": neutral,
-        "negative": negative
+    "average_score": round(avg_score, 2),
+    "positive": positive,
+    "neutral": neutral,
+    "negative": negative,
+    "most_positive": {
+        "Text": most_positive["Text"],
+        "SentimentScore": most_positive["SentimentScore"]
+    },
+    "most_negative": {
+        "Text": most_negative["Text"],
+        "SentimentScore": most_negative["SentimentScore"]
+    }
     }
 
     reviews = product_reviews.to_dict(orient="records")
