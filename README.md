@@ -1,6 +1,6 @@
 # Sentiment Analysis on Crypto News Article
 
-Brief description of what your project does and its main purpose in 1-2 sentences.
+A Flask web application that performs sentiment analysis on cryptocurrency news articles from user-provided URLs and includes sentiment trend analysis over time using a crypto news dataset.
 
 ## Features
 
@@ -11,6 +11,8 @@ Brief description of what your project does and its main purpose in 1-2 sentence
 - Plots sentiment trends over time with interactive visualizations
 - Flask web interface for easy interaction
 - Real-time sentiment scoring and analysis
+- CI pipeline with automated unit testing on pull requests and pushes to main branch
+- Docker containerization with automated build and push to registry
 
 ## Requirements
 
