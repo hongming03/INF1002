@@ -1,4 +1,3 @@
-<!--This is a feature to analyze url based on user input-->
 {% extends "layouts/base.html" %}
 
 {% block title %}Analyze Article{% endblock %}
@@ -30,21 +29,86 @@
   {% if article %}
   <div class="card mt-4">
     <div class="card-body">
-      <h5>{{ article.title }}</h5>
-      <p><a href="{{ article.url }}" target="_blank">{{ article.url }}</a></p>
-      <hr>
-      <p>{{ article.text[:1000] }}...</p>
+      <h2>{{ article["title"] }}</h2>
+      <p><a href="{{ article["url"] }}" target="_blank">{{ article["url"] }}</a></p>
 
+      <hr>
+      <p>{{ article["text"][:1000] }}...</p>
+
+      {% if sentiment_summary %}
       <h4 class="mt-4">Sentiment Summary</h4>
       <ul>
-        <li class="text-success">Positive: {{ positive }}</li>
-        <li class="text-secondary">Neutral: {{ neutral }}</li>
-        <li class="text-danger">Negative: {{ negative }}</li>
+        <li class="text-success"><strong>Positive:</strong> {{ sentiment_summary.positive }}</li>
+        <li class="text-secondary"><strong>Neutral:</strong> {{ sentiment_summary.neutral }}</li>
+        <li class="text-danger"><strong>Negative:</strong> {{ sentiment_summary.negative }}</li>
       </ul>
-      <p><strong>Average Score:</strong> {{ average_score }}</p>
+      <p><strong>Average Score:</strong> {{ sentiment_summary.average_score }}</p>
+
+      <!-- Highlight extreme sentences if available -->
+      {% if sentiment_summary.most_positive %}
+      <h5 class="text-success mt-3">Most Positive Sentence</h5>
+      <p>{{ sentiment_summary.most_positive.text }}</p>
+      <small class="text-muted">Score: {{ sentiment_summary.most_positive.SentimentScore }}</small>
+      {% endif %}
+
+      {% if sentiment_summary.most_negative %}
+      <h5 class="text-danger mt-3">Most Negative Sentence</h5>
+      <p>{{ sentiment_summary.most_negative.text }}</p>
+      <small class="text-muted">Score: {{ sentiment_summary.most_negative.SentimentScore }}</small>
+      {% endif %}
+
+      <!-- Charts -->
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <h6>Average Sentiment Over Time</h6>
+          <canvas id="avgSentimentChart" height="200"></canvas>
+        </div>
+        <div class="col-md-6">
+          <h6>Pos / Neu / Neg Over Time</h6>
+          <canvas id="sentimentAreaChart" height="200"></canvas>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </div>
   {% endif %}
 
 </div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+{% if avg_chart_data and area_chart_data %}
+const avgData = {{ avg_chart_data | tojson }};
+const areaData = {{ area_chart_data | tojson }};
+
+new Chart(document.getElementById('avgSentimentChart').getContext('2d'), {
+  type: 'line',
+  data: {
+    labels: avgData.dates,
+    datasets: [{
+      label: 'Average Sentiment',
+      data: avgData.values,
+      borderColor: 'blue',
+      backgroundColor: 'rgba(0,0,255,0.1)',
+      fill: true
+    }]
+  },
+  options: { responsive: true }
+});
+
+new Chart(document.getElementById('sentimentAreaChart').getContext('2d'), {
+  type: 'line',
+  data: {
+    labels: areaData.dates,
+    datasets: [
+      { label:'Positive', data: areaData.Positive, borderColor:'#2ca02c', backgroundColor:'rgba(44,160,44,0.3)', fill:true },
+      { label:'Neutral', data: areaData.Neutral, borderColor:'#ff7f0e', backgroundColor:'rgba(255,127,14,0.3)', fill:true },
+      { label:'Negative', data: areaData.Negative, borderColor:'#d62728', backgroundColor:'rgba(214,39,40,0.3)', fill:true }
+    ]
+  },
+  options: { responsive: true }
+});
+{% endif %}
+</script>
 {% endblock content %}

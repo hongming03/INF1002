@@ -1,13 +1,12 @@
 # routes.py
-from flask import render_template
+from types import SimpleNamespace
+from flask import render_template, redirect, url_for, request
 from data_loader import CryptoNewsData
 from analytics import get_sentiment_summary, get_chart_data
 from sentiment_analysis import analyze_sentences
 from analyzer import SentimentAnalyzer
 from urllib.parse import unquote
 import re
-from flask import request, redirect, url_for
-import requests
 from newspaper import Article
 import pandas as pd
 from datetime import datetime
@@ -94,26 +93,24 @@ def register_routes(app):
             if not article_text.strip():
                 return render_template("analyze_url.html", error="⚠️ No readable article text found. Try another link.")
 
-            # Run existing sentiment analyzer
+            # Split into sentences
+            sentences = [s.strip() for s in article_text.split(".") if s.strip()]
+
+            # Sentiment scoring
             analyzer = SentimentAnalyzer()
-            analysis = analyze_sentences([article_text], analyzer)
+            rows = []
+            for s in sentences:
+                score = analyzer.score(s)
+                rows.append({
+                    "text": s,
+                    "SentimentScore": score,
+                    "date": datetime.today().strftime("%Y-%m-%d")
+                })
 
-            # Convert analysis into DataFrame
-            if isinstance(analysis, list):  
-                # assume it's a list of dicts with 'text' + 'SentimentScore'
-                df = pd.DataFrame(analysis)
-            elif isinstance(analysis, dict):
-                # fallback: wrap dict
-                df = pd.DataFrame([analysis])
-            else:
-                return render_template("analyze_url.html", error="⚠️ Unexpected analysis format.")
+            df = pd.DataFrame(rows)
 
-            # Ensure required columns
-            if "text" not in df:
-                df["text"] = article_text
-            if "SentimentScore" not in df:
-                return render_template("analyze_url.html", error="⚠️ Analysis did not return sentiment scores.")
-            df["date"] = datetime.today().strftime("%Y-%m-%d")
+            if df.empty:
+                return render_template("analyze_url.html", error="⚠️ No sentences to analyze.")
 
             # Build sentiment summary + chart data
             avg_score = df["SentimentScore"].mean()
@@ -122,7 +119,11 @@ def register_routes(app):
 
             return render_template(
                 "analyze_url.html",
-                article={"url": query, "title": article_title or "External Article", "text": article_text},
+                article={
+                    "url": query,
+                    "title": article_title or "External Article",
+                    "text": article_text
+                },
                 sentiment_summary=sentiment_summary,
                 avg_chart_data=avg_chart_data,
                 area_chart_data=area_chart_data
@@ -131,6 +132,6 @@ def register_routes(app):
         # Not a URL → check valid subject
         subjects = crypto_data.get_subjects()
         if query not in subjects:
-            return render_template("analyze_url.html", error=f" '{query}' is not a valid subject or link.")
+            return render_template("analyze_url.html", error=f"⚠️ '{query}' is not a valid subject or link.")
 
         return redirect(url_for("subject", subj=query))
