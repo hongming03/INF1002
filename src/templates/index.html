@@ -1,0 +1,298 @@
+{% extends "layouts/base.html" %}
+{% block title %} Dashboard {% endblock %}
+{% block content %}
+<div class="content">
+  {% if sentiment_summary %}
+  <div class="container-fluid mb-4">
+    <div class="card">
+      <div class="card-body">
+        <h4>Crypto: {{ crypto_id }}</h4>
+        <ul>
+          <li><strong>Average Sentiment Score:</strong> {{ sentiment_summary.average_score }}</li>
+          <li class="text-success"><strong>Positive Posts:</strong> {{ sentiment_summary.positive }}</li>
+          <li class="text-secondary"><strong>Neutral Posts:</strong> {{ sentiment_summary.neutral }}</li>
+          <li class="text-danger"><strong>Negative Posts:</strong> {{ sentiment_summary.negative }}</li>
+        </ul>
+        <h5 class="text-success mt-3">Most Positive Post</h5>
+        <p>{{ sentiment_summary.most_positive.text }}</p>
+        <small class="text-muted">Score: {{ sentiment_summary.most_positive.SentimentScore }}</small>
+        <h5 class="text-danger mt-3">Most Negative Post</h5>
+        <p>{{ sentiment_summary.most_negative.text }}</p>
+        <small class="text-muted">Score: {{ sentiment_summary.most_negative.SentimentScore }}</small>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  
+  <!-- Date Range Picker -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="mb-3">Filter by Date Range</h6>
+          <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+              <label for="startDatePicker" class="form-label">Start Date</label>
+              <input type="date" id="startDatePicker" class="form-control">
+              <small class="text-muted">Earliest: <span id="minDateInfo">Loading...</span></small>
+            </div>
+            <div class="col-md-4">
+              <label for="endDatePicker" class="form-label">End Date</label>
+              <input type="date" id="endDatePicker" class="form-control">
+              <small class="text-muted">Latest: <span id="maxDateInfo">Loading...</span></small>
+            </div>
+            <div class="col-md-4">
+              <div class="d-grid gap-2">
+                <button id="applyFilter" class="btn btn-primary">Apply Filter</button>
+                <button id="resetFilter" class="btn btn-outline-secondary">Show All Data</button>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="alert alert-info py-2" role="alert">
+              <small><strong>Selected Range:</strong> <span id="selectedRange">All available data</span></small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts side by side -->
+  <div class="row">
+    <div class="col-md-6">
+      <h5>Average Sentiment Over Time</h5>
+      <canvas id="avgSentimentChart" height="200"></canvas>
+    </div>
+    <div class="col-md-6">
+      <h5>Pos/Neu/Neg Over Time</h5>
+      <canvas id="sentimentAreaChart" height="200"></canvas>
+    </div>
+  </div>
+  
+  <!-- Articles Table -->
+  <div class="card-body mt-4">
+    <table class="table tablesorter">
+      <thead class="text-primary">
+        <tr>
+          <th>Date</th>
+          <th>Sentiment Score</th>
+          <th>Article</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for article in articles %}
+        <tr>
+          <td>{{ article.date }}</td>
+          <td>{{ article.SentimentScore }}</td>
+          <td><a href="/article/{{ article.url | urlencode }}">{{ article.text }}</a></td>
+          <td>{{ article.source }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const avgData = {{ avg_chart_data | tojson }};
+const areaData = {{ area_chart_data | tojson }};
+let avgChart, areaChart;
+let minDate, maxDate;
+
+function initializeDatePickers() {
+    // Get all unique dates and find min/max
+    const allDates = [...new Set([...avgData.dates, ...areaData.dates])];
+    const sortedDates = allDates.map(d => new Date(d)).sort((a, b) => a - b);
+    
+    minDate = sortedDates[0];
+    maxDate = sortedDates[sortedDates.length - 1];
+    
+    // Format dates for HTML date inputs (YYYY-MM-DD)
+    const minDateStr = minDate.toISOString().split('T')[0];
+    const maxDateStr = maxDate.toISOString().split('T')[0];
+    
+    // Set date picker limits and default values
+    const startPicker = document.getElementById('startDatePicker');
+    const endPicker = document.getElementById('endDatePicker');
+    
+    startPicker.min = minDateStr;
+    startPicker.max = maxDateStr;
+    startPicker.value = minDateStr;
+    
+    endPicker.min = minDateStr;
+    endPicker.max = maxDateStr;
+    endPicker.value = maxDateStr;
+    
+    // Update info displays
+    document.getElementById('minDateInfo').textContent = minDate.toLocaleDateString();
+    document.getElementById('maxDateInfo').textContent = maxDate.toLocaleDateString();
+    
+    updateSelectedRange();
+}
+
+function updateSelectedRange() {
+    const startDate = document.getElementById('startDatePicker').value;
+    const endDate = document.getElementById('endDatePicker').value;
+    
+    if (startDate && endDate) {
+        const start = new Date(startDate).toLocaleDateString();
+        const end = new Date(endDate).toLocaleDateString();
+        document.getElementById('selectedRange').textContent = `${start} to ${end}`;
+    } else {
+        document.getElementById('selectedRange').textContent = 'All available data';
+    }
+}
+
+function validateDateRange() {
+    const startDate = new Date(document.getElementById('startDatePicker').value);
+    const endDate = new Date(document.getElementById('endDatePicker').value);
+    
+    if (startDate > endDate) {
+        alert('Start date cannot be after end date. Please adjust your selection.');
+        return false;
+    }
+    
+    if (startDate < minDate || endDate > maxDate) {
+        alert('Selected dates are outside the available data range.');
+        return false;
+    }
+    
+    return true;
+}
+
+function filterData() {
+    const startDateStr = document.getElementById('startDatePicker').value;
+    const endDateStr = document.getElementById('endDatePicker').value;
+    
+    if (!startDateStr || !endDateStr) {
+        // Return all data if no dates selected
+        return {
+            avgFiltered: {dates: avgData.dates.slice().reverse(), values: avgData.values.slice().reverse()},
+            posFiltered: {dates: areaData.dates, values: areaData.Positive},
+            neuFiltered: {dates: areaData.dates, values: areaData.Neutral},
+            negFiltered: {dates: areaData.dates, values: areaData.Negative}
+        };
+    }
+    
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr + 'T23:59:59'); // Include full end day
+    
+    function filterSeries(dates, values) {
+        let fDates = [], fValues = [];
+        dates.forEach((d, i) => {
+            const currentDate = new Date(d);
+            if (currentDate >= startDate && currentDate <= endDate) {
+                fDates.push(d);
+                fValues.push(values[i]);
+            }
+        });
+        return {dates: fDates, values: fValues};
+    }
+    
+    // Only reverse avgData arrays to match the timeline of areaData
+    return {
+        avgFiltered: filterSeries(avgData.dates.slice().reverse(), avgData.values.slice().reverse()),
+        posFiltered: filterSeries(areaData.dates, areaData.Positive),
+        neuFiltered: filterSeries(areaData.dates, areaData.Neutral),
+        negFiltered: filterSeries(areaData.dates, areaData.Negative)
+    };
+}
+
+function renderCharts() {
+    const filtered = filterData();
+    
+    // Destroy existing charts if any
+    if (avgChart) avgChart.destroy();
+    if (areaChart) areaChart.destroy();
+    
+    // Average Sentiment Chart
+    const ctxAvg = document.getElementById('avgSentimentChart').getContext('2d');
+    avgChart = new Chart(ctxAvg, {
+        type: 'line',
+        data: {
+            labels: filtered.avgFiltered.dates,
+            datasets: [{
+                label: 'Average Sentiment',
+                data: filtered.avgFiltered.values,
+                borderColor: 'blue',
+                backgroundColor: 'rgba(0,0,255,0.1)',
+                fill: true
+            }]
+        },
+        options: { 
+            responsive: true,
+            plugins: {
+                title: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // POS/NEU/NEG Chart
+    const ctxArea = document.getElementById('sentimentAreaChart').getContext('2d');
+    areaChart = new Chart(ctxArea, {
+        type: 'line',
+        data: {
+            labels: filtered.posFiltered.dates,
+            datasets: [
+                { label:'Positive', data: filtered.posFiltered.values, borderColor:'#2ca02c', backgroundColor:'rgba(44,160,44,0.3)', fill:true },
+                { label:'Neutral', data: filtered.neuFiltered.values, borderColor:'#ff7f0e', backgroundColor:'rgba(255,127,14,0.3)', fill:true },
+                { label:'Negative', data: filtered.negFiltered.values, borderColor:'#d62728', backgroundColor:'rgba(214,39,40,0.3)', fill:true }
+            ]
+        },
+        options: { 
+            responsive: true,
+            plugins: {
+                title: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+// Initialize
+initializeDatePickers();
+renderCharts();
+
+// Event listeners
+document.getElementById('startDatePicker').addEventListener('change', updateSelectedRange);
+document.getElementById('endDatePicker').addEventListener('change', updateSelectedRange);
+
+document.getElementById('applyFilter').addEventListener('click', () => {
+    if (validateDateRange()) {
+        updateSelectedRange();
+        renderCharts();
+    }
+});
+
+document.getElementById('resetFilter').addEventListener('click', () => {
+    const minDateStr = minDate.toISOString().split('T')[0];
+    const maxDateStr = maxDate.toISOString().split('T')[0];
+    
+    document.getElementById('startDatePicker').value = minDateStr;
+    document.getElementById('endDatePicker').value = maxDateStr;
+    
+    updateSelectedRange();
+    renderCharts();
+});
+
+// Auto-apply filter when dates change (optional - you can remove this if you prefer manual apply only)
+document.getElementById('startDatePicker').addEventListener('change', () => {
+    if (validateDateRange()) {
+        renderCharts();
+    }
+});
+
+document.getElementById('endDatePicker').addEventListener('change', () => {
+    if (validateDateRange()) {
+        renderCharts();
+    }
+});
+</script>
+{% endblock content %}

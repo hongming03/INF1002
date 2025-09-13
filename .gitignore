@@ -1,2 +1,5 @@
 .pytest_cache/
 .vscode/
+data/dataset/test.ft.txt
+src/__pycache__/
+src/afinn.egg-info
