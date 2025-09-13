@@ -98,8 +98,8 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const avgData = {{ avg_chart_data | tojson }};
-const areaData = {{ area_chart_data | tojson }};
+const avgData = JSON.parse('{{ avg_chart_data | tojson | safe }}');
+const areaData = JSON.parse('{{ area_chart_data | tojson | safe }}');
 let avgChart, areaChart;
 let minDate, maxDate;
 

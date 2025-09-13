@@ -5,6 +5,12 @@ from analytics import get_sentiment_summary, get_chart_data
 from sentiment_analysis import analyze_sentences
 from analyzer import SentimentAnalyzer
 from urllib.parse import unquote
+import re
+from flask import request, redirect, url_for
+import requests
+from newspaper import Article
+import pandas as pd
+from datetime import datetime
 
 crypto_data = CryptoNewsData()
 
@@ -62,3 +68,69 @@ def register_routes(app):
             subjects=subjects,
             **analysis
         )
+    
+
+    #analyze url based on user input
+    @app.route("/analyze_url", methods=["GET", "POST"])
+    def analyze_url():
+        if request.method == "GET":
+            return render_template("analyze_url.html")
+
+        query = request.form.get("query")
+        if not query:
+            return render_template("analyze_url.html", error="⚠️ Please enter a URL or subject.")
+
+        # If it's a URL
+        if re.match(r"^https?://", query):
+            try:
+                article_obj = Article(query)
+                article_obj.download()
+                article_obj.parse()
+                article_text = article_obj.text
+                article_title = article_obj.title
+            except Exception as e:
+                return render_template("analyze_url.html", error=f"⚠️ Could not fetch article: {e}")
+
+            if not article_text.strip():
+                return render_template("analyze_url.html", error="⚠️ No readable article text found. Try another link.")
+
+            # Run existing sentiment analyzer
+            analyzer = SentimentAnalyzer()
+            analysis = analyze_sentences([article_text], analyzer)
+
+            # Convert analysis into DataFrame
+            if isinstance(analysis, list):  
+                # assume it's a list of dicts with 'text' + 'SentimentScore'
+                df = pd.DataFrame(analysis)
+            elif isinstance(analysis, dict):
+                # fallback: wrap dict
+                df = pd.DataFrame([analysis])
+            else:
+                return render_template("analyze_url.html", error="⚠️ Unexpected analysis format.")
+
+            # Ensure required columns
+            if "text" not in df:
+                df["text"] = article_text
+            if "SentimentScore" not in df:
+                return render_template("analyze_url.html", error="⚠️ Analysis did not return sentiment scores.")
+            df["date"] = datetime.today().strftime("%Y-%m-%d")
+
+            # Build sentiment summary + chart data
+            avg_score = df["SentimentScore"].mean()
+            sentiment_summary = get_sentiment_summary(df, avg_score)
+            avg_chart_data, area_chart_data = get_chart_data(df)
+
+            return render_template(
+                "analyze_url.html",
+                article={"url": query, "title": article_title or "External Article", "text": article_text},
+                sentiment_summary=sentiment_summary,
+                avg_chart_data=avg_chart_data,
+                area_chart_data=area_chart_data
+            )
+
+        # Not a URL → check valid subject
+        subjects = crypto_data.get_subjects()
+        if query not in subjects:
+            return render_template("analyze_url.html", error=f" '{query}' is not a valid subject or link.")
+
+        return redirect(url_for("subject", subj=query))
