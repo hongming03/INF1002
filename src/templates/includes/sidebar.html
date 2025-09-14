@@ -19,6 +19,15 @@
                         <p>Dashboard</p>
                     </a>
                 </li>
+
+
+                <li class="{% if 'analyze_url' in segment %} active {% endif %}">
+                    <a href="/analyze_url">
+                        <i class="tim-icons icon-atom"></i>
+                        <p>Analyze URL</p>
+                    </a>
+                </li>
+
                 <li class="{% if 'user' in segment %} active {% endif %}">
                     <a href="/user.html">
                         <i class="tim-icons icon-single-02"></i>
