@@ -1,3 +1,5 @@
+<!-- templates/analyze_url.html -->
+
 {% extends "layouts/base.html" %}
 
 {% block title %}Analyze Article{% endblock %}
@@ -5,9 +7,12 @@
 {% block content %}
 <div class="container mt-4">
 
+  <!-- Page Header -->
   <h3>Analyze External Article</h3>
   
-  <!-- Search Form -->
+  <!-- ==========================
+       Search Form
+       ========================== -->
   <form action="/analyze_url" method="POST" class="d-flex mb-4">
     <input 
       type="text" 
@@ -18,97 +23,79 @@
     <button type="submit" class="btn btn-primary">Analyze</button>
   </form>
 
-  <!-- Error Handling -->
+  <!-- ==========================
+       Error Handling
+       ========================== -->
   {% if error %}
   <div class="alert alert-danger">
     {{ error }}
   </div>
   {% endif %}
 
-  <!-- Results -->
+  <!-- ==========================
+       Article Results
+       ========================== -->
   {% if article %}
   <div class="card mt-4">
     <div class="card-body">
-      <h2>{{ article["title"] }}</h2>
-      <p><a href="{{ article["url"] }}" target="_blank">{{ article["url"] }}</a></p>
+      
+      <!-- Article Title + Link -->
+      <h2>{{ article.title }}</h2>
+      <p>
+        <a href="{{ article.url }}" target="_blank">{{ article.url }}</a>
+      </p>
 
       <hr>
-      <p>{{ article["text"][:1000] }}...</p>
 
+      <!-- Full article  -->
+      <div>{{ article.text | replace('\n', ' ') }}</div>
+
+
+      <!-- ==========================
+           Sentiment Summary
+           ========================== -->
       {% if sentiment_summary %}
       <h4 class="mt-4">Sentiment Summary</h4>
-      <ul>
-        <li class="text-success"><strong>Positive:</strong> {{ sentiment_summary.positive }}</li>
-        <li class="text-secondary"><strong>Neutral:</strong> {{ sentiment_summary.neutral }}</li>
-        <li class="text-danger"><strong>Negative:</strong> {{ sentiment_summary.negative }}</li>
-      </ul>
-      <p><strong>Average Score:</strong> {{ sentiment_summary.average_score }}</p>
+      <div class="mb-2">
+        <span class="badge bg-success">Positive: {{ sentiment_summary.positive }}</span>
+        <span class="badge bg-secondary">Neutral: {{ sentiment_summary.neutral }}</span>
+        <span class="badge bg-danger">Negative: {{ sentiment_summary.negative }}</span>
+      </div>
 
-      <!-- Highlight extreme sentences if available -->
+      <p>
+        <strong>Average Score:</strong> {{ sentiment_summary.average_score }}
+      </p>
+
+      <!-- ==========================
+           Highlight Most Positive Sentence
+           ========================== -->
       {% if sentiment_summary.most_positive %}
       <h5 class="text-success mt-3">Most Positive Sentence</h5>
-      <p>{{ sentiment_summary.most_positive.text }}</p>
-      <small class="text-muted">Score: {{ sentiment_summary.most_positive.SentimentScore }}</small>
+      <blockquote class="blockquote">
+        <p>{{ sentiment_summary.most_positive.text }}</p>
+        <footer class="blockquote-footer">
+          Score: {{ sentiment_summary.most_positive.SentimentScore }}
+        </footer>
+      </blockquote>
       {% endif %}
 
+      <!-- ==========================
+           Highlight Most Negative Sentence
+           ========================== -->
       {% if sentiment_summary.most_negative %}
       <h5 class="text-danger mt-3">Most Negative Sentence</h5>
-      <p>{{ sentiment_summary.most_negative.text }}</p>
-      <small class="text-muted">Score: {{ sentiment_summary.most_negative.SentimentScore }}</small>
+      <blockquote class="blockquote">
+        <p>{{ sentiment_summary.most_negative.text }}</p>
+        <footer class="blockquote-footer">
+          Score: {{ sentiment_summary.most_negative.SentimentScore }}
+        </footer>
+      </blockquote>
+      {% endif %}
       {% endif %}
 
-      <!-- Charts -->
-      <div class="row mt-4">
-        <div class="col-md-6">
-          <h6>Average Sentiment Over Time</h6>
-          <canvas id="avgSentimentChart" height="200"></canvas>
-        </div>
-        <div class="col-md-6">
-          <h6>Pos / Neu / Neg Over Time</h6>
-          <canvas id="sentimentAreaChart" height="200"></canvas>
-        </div>
-      </div>
-      {% endif %}
     </div>
   </div>
   {% endif %}
 
 </div>
-
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-{% if avg_chart_data and area_chart_data %}
-const avgData = {{ avg_chart_data | tojson }};
-const areaData = {{ area_chart_data | tojson }};
-
-new Chart(document.getElementById('avgSentimentChart').getContext('2d'), {
-  type: 'line',
-  data: {
-    labels: avgData.dates,
-    datasets: [{
-      label: 'Average Sentiment',
-      data: avgData.values,
-      borderColor: 'blue',
-      backgroundColor: 'rgba(0,0,255,0.1)',
-      fill: true
-    }]
-  },
-  options: { responsive: true }
-});
-
-new Chart(document.getElementById('sentimentAreaChart').getContext('2d'), {
-  type: 'line',
-  data: {
-    labels: areaData.dates,
-    datasets: [
-      { label:'Positive', data: areaData.Positive, borderColor:'#2ca02c', backgroundColor:'rgba(44,160,44,0.3)', fill:true },
-      { label:'Neutral', data: areaData.Neutral, borderColor:'#ff7f0e', backgroundColor:'rgba(255,127,14,0.3)', fill:true },
-      { label:'Negative', data: areaData.Negative, borderColor:'#d62728', backgroundColor:'rgba(214,39,40,0.3)', fill:true }
-    ]
-  },
-  options: { responsive: true }
-});
-{% endif %}
-</script>
 {% endblock content %}

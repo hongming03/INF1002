@@ -1,4 +1,4 @@
-# Sentiment Analysis on Crypto News Article
+i# Sentiment Analysis on Crypto News Article
 
 A Flask web application that performs sentiment analysis on cryptocurrency news articles from user-provided URLs and includes sentiment trend analysis over time using a crypto news dataset.
 

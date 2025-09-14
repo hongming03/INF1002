@@ -1,5 +1,7 @@
 # sentiment_analysis.py
+from datetime import datetime
 import re
+import pandas as pd
 from typing import List, Dict, Optional
 from analyzer import SentimentAnalyzer
 
@@ -127,3 +129,29 @@ def analyze_sentences(
         "most_positive_segment": most_positive_segment,  # Window of phrases with highest combined score
         "most_negative_segment": most_negative_segment   # Window of phrases with lowest combined score
     }
+
+
+
+#def analyze_by_fullstop()
+def analyze_by_fullstop(text: str):
+    """
+    Splits a block of text into sentences by '.' and
+    scores each sentence with SentimentAnalyzer.
+    Returns a DataFrame with columns: text, SentimentScore, date.
+    """
+    if not text or not text.strip():
+        return pd.DataFrame()
+
+    # Split by full stop
+    sentences = [s.strip() for s in text.split(".") if s.strip()]
+
+    analyzer = SentimentAnalyzer()
+    rows = []
+    for s in sentences:
+        rows.append({
+            "text": s,
+            "SentimentScore": analyzer.score(s),
+            "date": datetime.today().strftime("%Y-%m-%d")
+        })
+
+    return pd.DataFrame(rows)
