@@ -7,8 +7,6 @@ from urllib.parse import unquote
 # Third-party libraries
 from flask import render_template, redirect, url_for, request
 from newspaper import Article
-from lxml import html
-
 # COwn modules
 from data_loader import CryptoNewsData
 from analytics import get_sentiment_summary, get_chart_data
