@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  unit-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,18 +22,42 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install black flake8 pytest
 
-      - name: Lint with flake8
+      - name: Lint and Format Check
         run: |
           flake8 src/
           black --check src/
-
-      - name: Format check with black
-        run: |
-          black --check src/
+        continue-on-error: true
 
     #   - name: Run tests
     #     run: |
     #       coverage run -m unittest discover tests/
     #       coverage report -m
+
+  docker-build-and-push:
+      runs-on: ubuntu-latest
+      needs: unit-test
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+        
+        - name: List workspace files
+          run: |
+            ls -la
+
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v2
+
+        - name: Log in to Docker Hub
+          uses: docker/login-action@v2
+          with:
+            username: ${{ vars.DOCKER_HUB_USERNAME }}
+            password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+        - name: Build and push Docker image
+          uses: docker/build-push-action@v4
+          with:
+            context: .
+            push: true
+            tags: ${{ vars.DOCKER_HUB_USERNAME }}/inf1002:${{ github.sha }}

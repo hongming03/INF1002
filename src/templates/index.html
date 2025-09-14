@@ -14,10 +14,10 @@
           <li class="text-danger"><strong>Negative Posts:</strong> {{ sentiment_summary.negative }}</li>
         </ul>
         <h5 class="text-success mt-3">Most Positive Post</h5>
-        <p>{{ sentiment_summary.most_positive.text }}</p>
+        <p>{{ sentiment_summary.most_positive.Text }}</p>
         <small class="text-muted">Score: {{ sentiment_summary.most_positive.SentimentScore }}</small>
         <h5 class="text-danger mt-3">Most Negative Post</h5>
-        <p>{{ sentiment_summary.most_negative.text }}</p>
+        <p>{{ sentiment_summary.most_negative.Text }}</p>
         <small class="text-muted">Score: {{ sentiment_summary.most_negative.SentimentScore }}</small>
       </div>
     </div>
@@ -282,7 +282,7 @@ document.getElementById('resetFilter').addEventListener('click', () => {
     renderCharts();
 });
 
-// Auto-apply filter when dates change (optional - you can remove this if you prefer manual apply only)
+// Auto-apply filter when dates change
 document.getElementById('startDatePicker').addEventListener('change', () => {
     if (validateDateRange()) {
         renderCharts();
