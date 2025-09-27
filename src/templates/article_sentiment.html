@@ -33,6 +33,31 @@
             </div>
           </div>
 
+          <!-- Variable-Length Sentiment Segments -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="card-title">Most Positive Variable-Length Segment</h5>
+              {% if most_positive_variable_segment %}
+                <blockquote class="blockquote text-success">
+                  <p>{{ most_positive_variable_segment.text }}</p>
+                  <footer class="blockquote-footer">Score: {{ most_positive_variable_segment.score }}</footer>
+                </blockquote>
+              {% else %}
+                <p class="text-muted">No positive segment found.</p>
+              {% endif %}
+
+              <h5 class="card-title mt-4">Most Negative Variable-Length Segment</h5>
+              {% if most_negative_variable_segment %}
+                <blockquote class="blockquote text-danger">
+                  <p>{{ most_negative_variable_segment.text }}</p>
+                  <footer class="blockquote-footer">Score: {{ most_negative_variable_segment.score }}</footer>
+                </blockquote>
+              {% else %}
+                <p class="text-muted">No negative segment found.</p>
+              {% endif %}
+            </div>
+          </div>
+
           <div class="card mb-4">
             <div class="card-body">
               <h5 class="card-title">Article Text</h5>
