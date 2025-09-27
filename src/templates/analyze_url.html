@@ -11,16 +11,16 @@
   <h3>Analyze External Article</h3>
   
   <!-- ==========================
-       Search Form
+       Search Form - Fixed Alignment
        ========================== -->
-  <form action="/analyze_url" method="POST" class="d-flex mb-4">
+  <form action="/analyze_url" method="POST" class="d-flex align-items-center mb-4">
     <input 
       type="text" 
       name="query" 
       class="form-control me-2" 
       placeholder="Paste article URL or type a subject" 
       required>
-    <button type="submit" class="btn btn-primary">Analyze</button>
+    <button type="submit" class="btn btn-primary flex-shrink-0">Analyze</button>
   </form>
 
   <!-- ==========================
@@ -50,21 +50,11 @@
       <!-- Full article  -->
       <div>{{ article.text | replace('\n', ' ') }}</div>
 
-
       <!-- ==========================
            Sentiment Summary
            ========================== -->
       {% if sentiment_summary %}
       <h4 class="mt-4">Sentiment Summary</h4>
-      <div class="mb-2">
-        <span class="badge bg-success">Positive: {{ sentiment_summary.positive }}</span>
-        <span class="badge bg-secondary">Neutral: {{ sentiment_summary.neutral }}</span>
-        <span class="badge bg-danger">Negative: {{ sentiment_summary.negative }}</span>
-      </div>
-
-      <p>
-        <strong>Average Score:</strong> {{ sentiment_summary.average_score }}
-      </p>
 
       <!-- ==========================
            Highlight Most Positive Sentence
@@ -91,6 +81,29 @@
         </footer>
       </blockquote>
       {% endif %}
+      {% endif %}
+
+      <!-- ==========================
+           Variable-Length Sentiment Segments
+           ========================== -->
+      {% if most_positive_variable_segment %}
+      <h4 class="text-success mt-4">Most Positive Variable-Length Segment</h4>
+      <blockquote class="blockquote">
+        <p>{{ most_positive_variable_segment.text }}</p>
+        <footer class="blockquote-footer">
+          Score: {{ most_positive_variable_segment.score }}
+        </footer>
+      </blockquote>
+      {% endif %}
+
+      {% if most_negative_variable_segment %}
+      <h4 class="text-danger mt-4">Most Negative Variable-Length Segment</h4>
+      <blockquote class="blockquote">
+        <p>{{ most_negative_variable_segment.text }}</p>
+        <footer class="blockquote-footer">
+          Score: {{ most_negative_variable_segment.score }}
+        </footer>
+      </blockquote>
       {% endif %}
 
     </div>

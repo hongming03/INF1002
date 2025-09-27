@@ -7,13 +7,11 @@ from urllib.parse import unquote
 # Third-party libraries
 from flask import render_template, redirect, url_for, request
 from newspaper import Article
-# COwn modules
+
+# Custom modules
 from data.data_loader import CryptoNewsData
-from reporting.analytics import get_sentiment_summary, get_chart_data
-from analysis.sentiment_analysis import analyze_sentences, analyze_by_fullstop
+from analysis.sentiment_analysis import analyze_text
 from models.analyzer import SentimentAnalyzer
-
-
 
 import pandas as pd
 from datetime import datetime
@@ -36,7 +34,6 @@ def register_routes(app):
     def subject(subj):
         avg_score, subject_news = crypto_data.get_news_by_subject(subj)
 
-        # Use analytics module
         sentiment_summary = get_sentiment_summary(subject_news, avg_score)
         avg_chart_data, area_chart_data = get_chart_data(subject_news)
 
@@ -64,19 +61,21 @@ def register_routes(app):
             return "Article not found", 404
 
         article = article_df.iloc[0]
-        analyzer = SentimentAnalyzer()
-        analysis = analyze_sentences([article["text"]], analyzer)
+        results = analyze_text(article["text"], mode="full")
         subjects = crypto_data.get_subjects()
 
         return render_template(
             "article_sentiment.html",
             article=article,
             subjects=subjects,
-            **analysis
+            most_positive=results["most_positive"],
+            most_negative=results["most_negative"],
+            most_positive_segment=results["most_positive_segment"],
+            most_negative_segment=results["most_negative_segment"],
+            most_positive_variable_segment=results["most_positive_variable_segment"],
+            most_negative_variable_segment=results["most_negative_variable_segment"]
         )
-    
 
-    #analyze url based on user input
     @app.route("/analyze_url", methods=["GET", "POST"])
     def analyze_url():
         if request.method == "GET":
@@ -104,18 +103,28 @@ def register_routes(app):
             except Exception as e:
                 return render_template("analyze_url.html", error=f"Could not fetch article: {e}")
 
-            # Run sentiment analysis
-            df = analyze_by_fullstop(article_text)
-            if df.empty:
-                return render_template("analyze_url.html", error="No sentences to analyze.")
-
-            avg_score = df["SentimentScore"].mean()
-            sentiment_summary = get_sentiment_summary(df, avg_score)
+            # Run both sentence-level and phrase-level analysis
+            phrase_results = analyze_text(article_text, mode="full")
+            sentence_results = analyze_text(article_text, mode="sentence")
+            sentiment_summary = sentence_results["summary"]
 
             return render_template(
                 "analyze_url.html",
-                article={"url": query, "title": article_title, "text": article_text},
-                sentiment_summary=sentiment_summary
+                article={
+                    "url": query,
+                    "title": article_title,
+                    "text": article_text,
+                    "source": "External",
+                    "date": datetime.today().strftime("%Y-%m-%d"),
+                    "subject": "URL Analysis"
+                },
+                sentiment_summary=sentiment_summary,
+                most_positive=phrase_results["most_positive"],
+                most_negative=phrase_results["most_negative"],
+                most_positive_segment=phrase_results["most_positive_segment"],
+                most_negative_segment=phrase_results["most_negative_segment"],
+                most_positive_variable_segment=phrase_results["most_positive_variable_segment"],
+                most_negative_variable_segment=phrase_results["most_negative_variable_segment"]
             )
 
         # -----------------------------------
@@ -126,4 +135,3 @@ def register_routes(app):
             return render_template("analyze_url.html", error=f"'{query}' is not a valid subject or link.")
 
         return redirect(url_for("subject", subj=query))
-        # End of analyze_url route
