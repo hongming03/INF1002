@@ -55,15 +55,6 @@
            ========================== -->
       {% if sentiment_summary %}
       <h4 class="mt-4">Sentiment Summary</h4>
-      <div class="mb-2">
-        <span class="badge bg-success">Positive: {{ sentiment_summary.positive }}</span>
-        <span class="badge bg-secondary">Neutral: {{ sentiment_summary.neutral }}</span>
-        <span class="badge bg-danger">Negative: {{ sentiment_summary.negative }}</span>
-      </div>
-
-      <p>
-        <strong>Average Score:</strong> {{ sentiment_summary.average_score }}
-      </p>
 
       <!-- ==========================
            Highlight Most Positive Sentence
