@@ -1,11 +1,12 @@
 import pandas as pd
-from analyzer import SentimentAnalyzer
+from models.analyzer import SentimentAnalyzer
 import os
 
 class CryptoNewsData:
     def __init__(self, csv_path=None):
         if csv_path is None:
-            BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            # Go up two levels from /src/data/ to project root
+            BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
             csv_path = os.path.join(BASE_DIR, "data", "cryptonews.csv")
         self.csv_path = csv_path
         self.analyzer = SentimentAnalyzer()

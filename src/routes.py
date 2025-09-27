@@ -8,10 +8,10 @@ from urllib.parse import unquote
 from flask import render_template, redirect, url_for, request
 from newspaper import Article
 # COwn modules
-from data_loader import CryptoNewsData
-from analytics import get_sentiment_summary, get_chart_data
-from sentiment_analysis import analyze_sentences, analyze_by_fullstop
-from analyzer import SentimentAnalyzer
+from data.data_loader import CryptoNewsData
+from reporting.analytics import get_sentiment_summary, get_chart_data
+from analysis.sentiment_analysis import analyze_sentences, analyze_by_fullstop
+from models.analyzer import SentimentAnalyzer
 
 
 
