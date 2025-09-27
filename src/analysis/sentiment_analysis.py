@@ -15,10 +15,17 @@ def analyze_sentences(
     batch_size: int = 100
 ) -> Dict[str, Optional[Dict[str, float]]]:
     """
-    Main sentiment analysis pipeline.
+    Run sentiment analysis on a list of texts and return key insights.
+    This looks for:
+      - The single most positive and negative phrases
+      - Sliding window segments of phrases
+      - Variable-length segments with extreme sentiment
     """
-    print("Breaking texts into phrases...")
+
+    # Step 1: Break all texts into smaller phrases so scoring is easier
     all_phrases_text = split_texts_into_phrases(texts, max_words_per_segment)
+
+    # If no phrases are returned, just return None for all results
     if not all_phrases_text:
         return {
             "most_positive": None,
@@ -29,21 +36,25 @@ def analyze_sentences(
             "most_negative_variable_segment": None
         }
 
+    # Step 2: Score each phrase using the sentiment analyzer, process in batches for efficiency
     all_phrases = score_phrases_in_batches(all_phrases_text, analyzer, batch_size)
 
-    print("Finding most extreme phrases...")
-    most_positive = max(all_phrases, key=lambda x: x["score"])
-    most_negative = min(all_phrases, key=lambda x: x["score"])
+    # Step 3: Identify the single most positive and most negative phrases
+    def get_score(item):
+        return item["score"]  # helper function to access the score key
 
-    print("Creating sliding window segments...")
+    most_positive = max(all_phrases, key=get_score)
+    most_negative = min(all_phrases, key=get_score)
+
+    # Step 4: Create sliding window segments to capture context across multiple phrases
     segments = create_sliding_window_segments(all_phrases, window_size)
-    most_positive_segment = max(segments, key=lambda x: x["score"], default=None)
-    most_negative_segment = min(segments, key=lambda x: x["score"], default=None)
+    most_positive_segment = max(segments, key=get_score, default=None)
+    most_negative_segment = min(segments, key=get_score, default=None)
 
-    print("Finding variable-length segments...")
+    # Step 5: Find variable-length segments that have the strongest sentiment
     variable_segments = find_variable_length_segments(all_phrases)
 
-    print("Analysis complete!")
+    # Step 6: Return all the key insights in one clean dictionary
     return {
         "most_positive": most_positive,
         "most_negative": most_negative,
@@ -52,6 +63,7 @@ def analyze_sentences(
         "most_positive_variable_segment": variable_segments["most_positive_segment"],
         "most_negative_variable_segment": variable_segments["most_negative_segment"]
     }
+
 
 def analyze_by_fullstop(text: str):
     """
