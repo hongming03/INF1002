@@ -10,7 +10,7 @@ from newspaper import Article
 # COwn modules
 from data.data_loader import CryptoNewsData
 from reporting.analytics import get_sentiment_summary, get_chart_data
-from analysis.sentiment_analysis import analyze_sentences, analyze_by_fullstop
+from analysis.sentiment_analysis import analyze_phrases, analyze_by_fullstop
 from models.analyzer import SentimentAnalyzer
 
 
@@ -65,7 +65,7 @@ def register_routes(app):
 
         article = article_df.iloc[0]
         analyzer = SentimentAnalyzer()
-        analysis = analyze_sentences([article["text"]], analyzer)
+        analysis = analyze_phrases([article["text"]], analyzer)
         subjects = crypto_data.get_subjects()
 
         return render_template(
@@ -76,7 +76,6 @@ def register_routes(app):
         )
     
 
-    #analyze url based on user input
     @app.route("/analyze_url", methods=["GET", "POST"])
     def analyze_url():
         if request.method == "GET":
@@ -104,18 +103,32 @@ def register_routes(app):
             except Exception as e:
                 return render_template("analyze_url.html", error=f"Could not fetch article: {e}")
 
-            # Run sentiment analysis
-            df = analyze_by_fullstop(article_text)
-            if df.empty:
-                return render_template("analyze_url.html", error="No sentences to analyze.")
+            # Run full sentiment analysis
+            analyzer = SentimentAnalyzer()
+            results = analyze_phrases([article_text], analyzer)
 
-            avg_score = df["SentimentScore"].mean()
+            # Fallback summary for badge display
+            df = analyze_by_fullstop(article_text)
+            avg_score = df["SentimentScore"].mean() if not df.empty else 0
             sentiment_summary = get_sentiment_summary(df, avg_score)
 
             return render_template(
                 "analyze_url.html",
-                article={"url": query, "title": article_title, "text": article_text},
-                sentiment_summary=sentiment_summary
+                article={
+                    "url": query,
+                    "title": article_title,
+                    "text": article_text,
+                    "source": "External",
+                    "date": datetime.today().strftime("%Y-%m-%d"),
+                    "subject": "URL Analysis"
+                },
+                sentiment_summary=sentiment_summary,
+                most_positive=results["most_positive"],
+                most_negative=results["most_negative"],
+                most_positive_segment=results["most_positive_segment"],
+                most_negative_segment=results["most_negative_segment"],
+                most_positive_variable_segment=results["most_positive_variable_segment"],
+                most_negative_variable_segment=results["most_negative_variable_segment"]
             )
 
         # -----------------------------------
@@ -126,4 +139,3 @@ def register_routes(app):
             return render_template("analyze_url.html", error=f"'{query}' is not a valid subject or link.")
 
         return redirect(url_for("subject", subj=query))
-        # End of analyze_url route

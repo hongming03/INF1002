@@ -50,7 +50,6 @@
       <!-- Full article  -->
       <div>{{ article.text | replace('\n', ' ') }}</div>
 
-
       <!-- ==========================
            Sentiment Summary
            ========================== -->
@@ -91,6 +90,29 @@
         </footer>
       </blockquote>
       {% endif %}
+      {% endif %}
+
+      <!-- ==========================
+           Variable-Length Sentiment Segments
+           ========================== -->
+      {% if most_positive_variable_segment %}
+      <h4 class="text-success mt-4">Most Positive Variable-Length Segment</h4>
+      <blockquote class="blockquote">
+        <p>{{ most_positive_variable_segment.text }}</p>
+        <footer class="blockquote-footer">
+          Score: {{ most_positive_variable_segment.score }}
+        </footer>
+      </blockquote>
+      {% endif %}
+
+      {% if most_negative_variable_segment %}
+      <h4 class="text-danger mt-4">Most Negative Variable-Length Segment</h4>
+      <blockquote class="blockquote">
+        <p>{{ most_negative_variable_segment.text }}</p>
+        <footer class="blockquote-footer">
+          Score: {{ most_negative_variable_segment.score }}
+        </footer>
+      </blockquote>
       {% endif %}
 
     </div>

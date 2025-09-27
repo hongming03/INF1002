@@ -7,7 +7,7 @@ from analysis.text_utils import split_texts_into_phrases, create_sliding_window_
 from analysis.scoring import score_phrases_in_batches
 from analysis.segment_finder import find_variable_length_segments
 
-def analyze_sentences(
+def analyze_phrases(
     texts: List[str], 
     analyzer: SentimentAnalyzer, 
     window_size: int = 1,
