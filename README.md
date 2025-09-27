@@ -53,7 +53,9 @@ A Flask web application that performs sentiment analysis on cryptocurrency news 
    python src/app.py
    ```
 
-### Option 2: Docker Setup
+### Option 2: Docker Setup (Optional)
+
+[Docker Hub: hongming2003/inf1002](https://hub.docker.com/repository/docker/hongming2003/inf1002/general)
 
 1. **Clone the repository**
    ```bash

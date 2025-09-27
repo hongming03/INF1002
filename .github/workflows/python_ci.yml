@@ -61,3 +61,4 @@ jobs:
             context: .
             push: true
             tags: ${{ vars.DOCKER_HUB_USERNAME }}/inf1002:${{ github.sha }}
+
