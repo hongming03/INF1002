@@ -76,6 +76,13 @@ def register_routes(app):
             most_positive_variable_segment=results["most_positive_variable_segment"],
             most_negative_variable_segment=results["most_negative_variable_segment"]
         )
+    
+    @app.route("/test-nospace")
+    def test_nospace():
+        # just render your template directly
+        return render_template("article_nospace.html")
+
+
 
     @app.route("/analyze_url", methods=["GET", "POST"])
     def analyze_url():
