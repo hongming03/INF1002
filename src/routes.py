@@ -11,7 +11,8 @@ from newspaper import Article
 # Custom modules
 from data.data_loader import CryptoNewsData
 from analysis.sentiment_analysis import analyze_text
-from models.analyzer import SentimentAnalyzer
+from analysis.segmentation import analyze_segmented_text, all_segmentations
+from reporting.analytics import get_sentiment_summary, get_chart_data
 
 import pandas as pd
 from datetime import datetime
@@ -135,3 +136,33 @@ def register_routes(app):
             return render_template("analyze_url.html", error=f"'{query}' is not a valid subject or link.")
 
         return redirect(url_for("subject", subj=query))
+    
+
+    # for requirement 6
+    @app.route("/segment_text", methods=["GET", "POST"])
+    def segment_text_route():
+        if request.method == "GET":
+            return render_template("segment_text.html")
+
+        raw_text = request.form.get("text", "").strip()
+
+        if not raw_text:
+            return render_template("segment_text.html", error="Please enter text without spaces.")
+
+         # Use helper that already handles cleaning + sentiment analyzer
+        result = analyze_segmented_text(raw_text)
+
+        all_segs = all_segmentations(raw_text.lower()) if result["segmented"] else []
+        one_seg = result["segmented"].split() if result["segmented"] else None
+        score = result["score"]
+
+
+
+        return render_template(
+        "segment_text.html",
+        text=raw_text,
+        one_seg=result["segmented"].split() if result["segmented"] else None,
+        all_segs=all_segs,
+        score=result["score"]
+        )
+
