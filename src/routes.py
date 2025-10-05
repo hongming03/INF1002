@@ -1,7 +1,7 @@
 # routes.py
 
 # Standard library
-import re, os
+import re, requests
 from urllib.parse import unquote
 from datetime import datetime
 
@@ -84,7 +84,7 @@ def register_routes(app):
         return render_template("article_nospace.html")
 
 
-    # Web Scrape
+    #Web Scrape
     @app.route("/analyze_url", methods=["GET", "POST"])
     def analyze_url():
         if request.method == "GET":
@@ -99,11 +99,23 @@ def register_routes(app):
         # Case 1: Handle full URL
         if re.match(r"^https?://", query):
             try:
-                article_obj = Article(query)
-                article_obj.download()
-                article_obj.parse()
-                article_text = article_obj.text
-                article_title = article_obj.title or "External Article"
+                # --- Handle local Flask route separately ---
+                if "127.0.0.1" in query or "localhost" in query:
+                    response = requests.get(query)
+                    html = response.text
+
+                    # Extract <p> tag content manually
+                    match = re.search(r"<p[^>]*>(.*?)</p>", html, re.DOTALL)
+                    article_text = match.group(1).strip() if match else ""
+                    article_title = "Crypto Sentiment Stress Test (Local Demo)"
+                else:
+                    # Normal external article
+                    article_obj = Article(query)
+                    article_obj.download()
+                    article_obj.parse()
+                    article_text = article_obj.text
+                    article_title = article_obj.title or "External Article"
+
             except Exception as e:
                 return render_template("analyze_url.html", error=f"Could not fetch article: {e}")
         else:
@@ -133,12 +145,12 @@ def register_routes(app):
             if one_seg:
                 article_text = " ".join(one_seg)
 
-
         # Sentiment analysis
         phrase_results = analyze_text(article_text, mode="full")
         sentence_results = analyze_text(article_text, mode="sentence")
         sentiment_summary = sentence_results["summary"]
 
+        # Render
         return render_template(
             "analyze_url.html",
             article={
@@ -160,4 +172,5 @@ def register_routes(app):
             most_positive_variable_segment=phrase_results["most_positive_variable_segment"],
             most_negative_variable_segment=phrase_results["most_negative_variable_segment"]
         )
+
 
