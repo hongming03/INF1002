@@ -1,102 +1,91 @@
-# analysis/segmentation.py
-import os
-import nltk
-from nltk.corpus import words
-from functools import lru_cache
-from typing import List, Set, Dict
-from models.analyzer import SentimentAnalyzer
-
-# Make sure NLTK words are available
-try:
-    _ = words.words()
-except LookupError:
-    nltk.download("words")
+from typing import List, Set, Optional
 
 # -------------------------------
-# Dictionary helpers
+# Segmentation Algorithms
 # -------------------------------
-@lru_cache(maxsize=1)
-def get_english_dictionary() -> Set[str]:
-    return set(w.lower() for w in words.words())
 
-def load_wordlist(path: str) -> Set[str]:
-    if not os.path.exists(path):
-        return set()
-    with open(path, "r", encoding="utf-8") as f:
-        return set(line.strip().lower() for line in f if line.strip())
-
-def get_extended_dictionary() -> Set[str]:
-    # Merge English words + crypto_terms.txt + article_dict.txt
-    base = get_english_dictionary()
-    crypto_terms = load_wordlist("data/crypto_terms.txt")
-    article_terms = load_wordlist("data/article_dict.txt")
-    return base | crypto_terms | article_terms
-
-# -------------------------------
-# Clean text before segmentation
-# -------------------------------
-def clean_text_for_segmentation(text: str) -> str:
-    analyzer = SentimentAnalyzer()
-    tokens = analyzer._tokenize(text)  # lowercase + regex clean
-    return "".join(tokens)  # glue tokens back together
-
-# -------------------------------
-# Segmentation core
-# -------------------------------
-def segment_text(text: str, dictionary: Set[str] = None) -> List[str]:
-    """Return one valid segmentation using DP"""
-    if dictionary is None:
-        dictionary = get_extended_dictionary()
-
+def segment_text(text: str, dictionary: Set[str]) -> List[str]:
+    """
+    Segment text into words using a dictionary (returns one valid segmentation).
+    Example: "thisisapen" -> ["this", "is", "a", "pen"]
+    """
+    # Always lowercase input for consistency with dictionary
+    text = text.lower().strip()
     n = len(text)
-    dp = [None] * (n + 1)
+    dp: List[Optional[List[str]]] = [None] * (n + 1)
     dp[0] = []
 
     for i in range(1, n + 1):
         for j in range(i):
-            if dp[j] is not None and text[j:i] in dictionary:
-                dp[i] = dp[j] + [text[j:i]]
+            word = text[j:i]
+            if dp[j] is not None and word in dictionary:
+                dp[i] = dp[j] + [word]
                 break
+
     return dp[n] if dp[n] else []
 
-def all_segmentations(text: str, dictionary: Set[str] = None) -> List[List[str]]:
-    """Return all possible segmentations (DFS + memo)"""
-    if dictionary is None:
-        dictionary = get_extended_dictionary()
 
+def all_segmentations(text: str, dictionary: Set[str]) -> List[List[str]]:
+    """
+    Return all possible valid segmentations of `text` using DFS with memoization.
+    """
+    text = text.lower().strip()
     memo = {}
-    def dfs(idx):
-        if idx == len(text): return [[]]
-        if idx in memo: return memo[idx]
+
+    def dfs(index: int) -> List[List[str]]:
+        if index == len(text):
+            return [[]]
+        if index in memo:
+            return memo[index]
+
         results = []
-        for end in range(idx+1, len(text)+1):
-            word = text[idx:end]
+        for end in range(index + 1, len(text) + 1):
+            word = text[index:end]
             if word in dictionary:
                 for seg in dfs(end):
                     results.append([word] + seg)
-        memo[idx] = results
+
+        memo[index] = results
         return results
+
     return dfs(0)
 
+
 # -------------------------------
-# Segmentation + Sentiment
+# Dictionary Helper (NLTK + Crypto)
 # -------------------------------
-def analyze_segmented_text(text: str, dictionary: Set[str] = None) -> Dict:
-    if dictionary is None:
-        dictionary = get_extended_dictionary()
 
-    cleaned = clean_text_for_segmentation(text)
-    one_seg = segment_text(cleaned, dictionary)
-
-    if not one_seg:
-        return {"original": text, "segmented": None, "score": 0}
-
-    segmented_text = " ".join(one_seg)
-    analyzer = SentimentAnalyzer()
-    score = analyzer.score(segmented_text)
-
-    return {
-        "original": text,
-        "segmented": segmented_text,
-        "score": score
+def get_full_dictionary() -> Set[str]:
+    """
+    Return a reliable, lightweight dictionary that always includes core and crypto words.
+    """
+    # Basic English words (especially short ones that NLTK often misses)
+    core_words = {
+        "this", "is", "a", "pen", "the", "and", "to", "for", "of", "on", "in",
+        "by", "with", "from", "at", "that", "be", "are", "was", "were", "it",
+        "as", "an", "if", "so", "not", "do", "you", "i", "we", "he", "she",
+        "they", "them", "his", "her", "our", "their"
     }
+
+    crypto_terms = {
+        "bitcoin", "ethereum", "hodl", "bullrun",
+        "blockchain", "nft", "satoshi", "altcoin", "defi",
+        "token", "coin", "crypto", "market", "profit", "loss", "wallet",
+        "buy", "sell", "price", "exchange"
+    }
+
+    # Optional: try loading NLTK words (quietly)
+    english_dict = set()
+    try:
+        import nltk
+        from nltk.corpus import words
+        nltk.download("words", quiet=True)
+        english_dict = set(w.lower() for w in words.words())
+    except Exception:
+        pass  # safe fallback if NLTK not available
+
+    return english_dict.union(crypto_terms).union(core_words)
+
+
+
+
