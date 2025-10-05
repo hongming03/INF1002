@@ -1,8 +1,6 @@
 from typing import List, Set, Optional
 
-# -------------------------------
 # Segmentation Algorithms
-# -------------------------------
 
 def segment_text(text: str, dictionary: Set[str]) -> List[str]:
     """
@@ -51,27 +49,25 @@ def all_segmentations(text: str, dictionary: Set[str]) -> List[List[str]]:
     return dfs(0)
 
 
-# -------------------------------
 # Dictionary Helper (NLTK + Crypto)
-# -------------------------------
 
 def get_full_dictionary() -> Set[str]:
     """
-    Return a reliable, lightweight dictionary that always includes core and crypto words.
+    Return a reliable, lightweight dictionary that always includescrypto words.
     """
-    # Basic English words (especially short ones that NLTK often misses)
-    core_words = {
-        "this", "is", "a", "pen", "the", "and", "to", "for", "of", "on", "in",
-        "by", "with", "from", "at", "that", "be", "are", "was", "were", "it",
-        "as", "an", "if", "so", "not", "do", "you", "i", "we", "he", "she",
-        "they", "them", "his", "her", "our", "their"
-    }
 
     crypto_terms = {
         "bitcoin", "ethereum", "hodl", "bullrun",
         "blockchain", "nft", "satoshi", "altcoin", "defi",
         "token", "coin", "crypto", "market", "profit", "loss", "wallet",
-        "buy", "sell", "price", "exchange"
+        "buy", "sell", "price", "exchange", "Cryptocurrency", "has", "revolutionized", "the", "financial", "world", "with", "its",
+    "decentralized", "nature", "and", "potential", "for", "high", "returns", "Bitcoin",
+    "Ethereum", "and", "other", "digital", "assets", "are", "gaining", "traction", "among",
+    "investors", "and", "tech", "enthusiasts", "alike", "While", "volatility", "remains",
+    "a", "major", "concern", "many", "believe", "that", "blockchain", "technology", "will",
+    "transform", "industries", "from", "banking", "to", "supply", "chain", "management",
+    "Regulatory", "uncertainty", "continues", "but", "governments", "are", "exploring",
+    "ways", "to", "integrate", "crypto", "safely", "into", "the", "economy"
     }
 
     # Optional: try loading NLTK words (quietly)
@@ -84,7 +80,7 @@ def get_full_dictionary() -> Set[str]:
     except Exception:
         pass  # safe fallback if NLTK not available
 
-    return english_dict.union(crypto_terms).union(core_words)
+    return english_dict.union(crypto_terms)
 
 
 

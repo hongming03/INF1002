@@ -1,8 +1,9 @@
 # routes.py
 
 # Standard library
-import re
+import re, os
 from urllib.parse import unquote
+from datetime import datetime
 
 # Third-party libraries
 from flask import render_template, redirect, url_for, request
@@ -83,14 +84,6 @@ def register_routes(app):
         return render_template("article_nospace.html")
 
 
-
-    #Requirement 6 test website
-    @app.route("/test-nospace")
-    def article_page():
-        return render_template("article_nospace.html")
-
-
-
     # Web Scrape
     @app.route("/analyze_url", methods=["GET", "POST"])
     def analyze_url():
@@ -125,13 +118,21 @@ def register_routes(app):
 
         if force_segment:
             dictionary = get_full_dictionary()
-            # One valid segmentation
-            one_seg = segment_text(article_text.lower(), dictionary)
-            # All possible segmentations
-            all_segs = all_segmentations(article_text.lower(), dictionary)
-            # Replace text if segmentation succeeded
-        if one_seg:
+            text_lower = article_text.lower()
+
+            # --- Always run the fast single segmentation ---
+            one_seg = segment_text(text_lower, dictionary)
+
+            # --- Only run all_segmentations() for short inputs ---
+            if len(text_lower) <= 60:  # adjust cutoff as you like
+                all_segs = all_segmentations(text_lower, dictionary)
+            else:
+                all_segs = []  # skip heavy recursion for long text
+
+            # --- Use the repaired text if segmentation succeeded ---
+            if one_seg:
                 article_text = " ".join(one_seg)
+
 
         # Sentiment analysis
         phrase_results = analyze_text(article_text, mode="full")
@@ -159,6 +160,4 @@ def register_routes(app):
             most_positive_variable_segment=phrase_results["most_positive_variable_segment"],
             most_negative_variable_segment=phrase_results["most_negative_variable_segment"]
         )
-
-        
 
