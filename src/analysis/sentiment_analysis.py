@@ -9,7 +9,7 @@ from analysis.segment_finder import find_variable_length_segments
 from reporting.analytics import get_sentiment_summary
 
 # -------------------------------
-# Utility: Sentence-level scoring
+# Utility: Sentence-level scoring'[,\;—:]', text) if s.strip()]
 # -------------------------------
 def score_sentences_by_fullstop(text: str) -> pd.DataFrame:
     if not text or not text.strip():

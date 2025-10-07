@@ -38,7 +38,13 @@ def create_sliding_window_segments(all_phrases: List[Dict[str, float]], window_s
     - Each segment contains 'window_size' phrases.
     - The segment's score is the sum of all phrase scores.
     - The segment's text joins all phrase texts with periods.
+    Raises ValueError if window_size <= 0 or window_size > len(all_phrases).
     """
+    if window_size <= 0:
+        raise ValueError("window_size must be a positive integer.")
+    if window_size > len(all_phrases):
+        raise ValueError("window_size cannot be greater than the number of phrases.")
+
     segments = []
 
     # Slide a window across all phrases
