@@ -1,114 +1,124 @@
 <!-- templates/analyze_url.html -->
-
 {% extends "layouts/base.html" %}
-
 {% block title %}Analyze Article{% endblock %}
-
 {% block content %}
 <div class="container mt-4">
 
   <!-- Page Header -->
-  <h3>Analyze External Article</h3>
-  
-  <!-- ==========================
-       Search Form - Fixed Alignment
-       ========================== -->
-  <form action="/analyze_url" method="POST" class="d-flex align-items-center mb-4">
-    <input 
-      type="text" 
-      name="query" 
-      class="form-control me-2" 
-      placeholder="Paste article URL or type a subject" 
-      required>
+  <h3>Analyze External Article or Raw Text</h3>
+
+  <!-- Search Form -->
+  <form action="/analyze_url" method="POST" class="d-flex align-items-center mb-4 flex-wrap gap-2">
+    <input type="text" name="query" class="form-control me-2"
+      placeholder="Paste article URL, subject, or raw text (e.g. bitcoinlossprofit)" required>
     <button type="submit" class="btn btn-primary flex-shrink-0">Analyze</button>
+
+    
+
+    <!-- Requirement 6 Toggle -->
+    <div class="form-check form-switch ms-3 d-flex align-items-center">
+      <input class="form-check-input" type="checkbox" id="forceSegment" name="force_segment" value="1"
+            style="width:2.5em;height:1.2em;cursor:pointer;"
+            onclick="this.nextElementSibling.style.fontWeight = this.checked ? '700' : '400'; this.nextElementSibling.style.color = this.checked ? '#000' : '#6c757d';">
+      <label class="form-check-label small text-muted" for="forceSegment"
+            style="margin-left:6px;transition:font-weight 0.2s;">Repair Missing Spaces (Requirement 6)</label>
+</div>
+
   </form>
 
-  <!-- ==========================
-       Error Handling
-       ========================== -->
+  <!-- Error Message -->
   {% if error %}
-  <div class="alert alert-danger">
-    {{ error }}
-  </div>
+  <div class="alert alert-danger">{{ error }}</div>
   {% endif %}
 
-  <!-- ==========================
-       Article Results
-       ========================== -->
+  <!-- Article Results -->
   {% if article %}
-  <div class="card mt-4">
-    <div class="card-body">
-      
-      <!-- Article Title + Link -->
-      <h2>{{ article.title }}</h2>
-      <p>
-        <a href="{{ article.url }}" target="_blank">{{ article.url }}</a>
-      </p>
+  <div class="card mt-4"><div class="card-body">
 
-      <hr>
+    <!-- Title + Link -->
+    <h2>{{ article.title|default("Untitled Article") }}</h2>
+    {% if article.url %}<p><a href="{{ article.url }}" target="_blank">{{ article.url }}</a></p>{% endif %}
+    <small class="text-muted">Source: {{ article.source|default("Manual Input") }} | Date: {{ article.date|default("Today") }}</small>
+    <hr>
 
-      <!-- Full article  -->
-      <div>{{ article.text | replace('\n', ' ') }}</div>
-
-      <!-- ==========================
-           Sentiment Summary
-           ========================== -->
-      {% if sentiment_summary %}
-      <h4 class="mt-4">Sentiment Summary</h4>
-
-      <!-- ==========================
-           Highlight Most Positive Sentence
-           ========================== -->
-      {% if sentiment_summary.most_positive %}
-      <h5 class="text-success mt-3">Most Positive Sentence</h5>
-      <blockquote class="blockquote">
-        <p>{{ sentiment_summary.most_positive.text }}</p>
-        <footer class="blockquote-footer">
-          Score: {{ sentiment_summary.most_positive.SentimentScore }}
-        </footer>
-      </blockquote>
-      {% endif %}
-
-      <!-- ==========================
-           Highlight Most Negative Sentence
-           ========================== -->
-      {% if sentiment_summary.most_negative %}
-      <h5 class="text-danger mt-3">Most Negative Sentence</h5>
-      <blockquote class="blockquote">
-        <p>{{ sentiment_summary.most_negative.text }}</p>
-        <footer class="blockquote-footer">
-          Score: {{ sentiment_summary.most_negative.SentimentScore }}
-        </footer>
-      </blockquote>
-      {% endif %}
-      {% endif %}
-
-      <!-- ==========================
-           Variable-Length Sentiment Segments
-           ========================== -->
-      {% if most_positive_variable_segment %}
-      <h4 class="text-success mt-4">Most Positive Variable-Length Segment</h4>
-      <blockquote class="blockquote">
-        <p>{{ most_positive_variable_segment.text }}</p>
-        <footer class="blockquote-footer">
-          Score: {{ most_positive_variable_segment.score }}
-        </footer>
-      </blockquote>
-      {% endif %}
-
-      {% if most_negative_variable_segment %}
-      <h4 class="text-danger mt-4">Most Negative Variable-Length Segment</h4>
-      <blockquote class="blockquote">
-        <p>{{ most_negative_variable_segment.text }}</p>
-        <footer class="blockquote-footer">
-          Score: {{ most_negative_variable_segment.score }}
-        </footer>
-      </blockquote>
-      {% endif %}
-
+    <!-- Segmentation Results -->
+    {% if one_seg %}
+    <div class="alert alert-info border border-primary mt-3 p-3">
+      <h5 class="text-primary mb-2">One Valid Segmentation (Requirement 6 Applied)</h5>
+      <p class="fs-5"><strong>{{ " ".join(one_seg) }}</strong></p>
     </div>
-  </div>
-  {% endif %}
+    {% endif %}
 
+    {% if all_segs %}
+    <div class="alert alert-success border border-success mt-3 p-3">
+      <h5 class="text-success mb-2">All Possible Segmentations</h5>
+      <div style="max-height:200px;overflow-y:auto;font-family:monospace;">
+        {% if all_segs %}
+          {% for seg in all_segs %}
+            <div style="background:#f8f9fa;border-radius:4px;padding:4px 8px;margin-bottom:4px;color:#212529;">
+              {{ " ".join(seg) }}
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted">No valid segmentations found.</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Original vs Repaired -->
+    {% if original_text and original_text != article.text %}
+    <div class="alert alert-warning border border-warning mt-3 p-3">
+      <h6 class="text-warning mb-1">Original (Broken) Text:</h6>
+      <code>{{ original_text }}</code>
+      <h6 class="text-warning mt-2 mb-1">Repaired Text Used for Sentiment Analysis:</h6>
+      <div style="background:#eef7ff;border-left:4px solid #0d6efd;
+                  padding:6px 8px;border-radius:4px;color:#0d6efd;font-weight:500;">
+        {{ article.text }}
+      </div>
+    </div>
+    {% else %}
+    <div>{{ article.text|default("") | replace('\n',' ') }}</div>
+    {% endif %}
+
+    <!-- Sentiment Summary -->
+    {% if sentiment_summary %}
+    <h4 class="mt-4">Sentiment Summary</h4>
+    {% if sentiment_summary.most_positive %}
+    <h5 class="text-success mt-3">Most Positive Sentence</h5>
+    <blockquote class="blockquote">
+      <p>{{ sentiment_summary.most_positive.text }}</p>
+      <footer class="blockquote-footer">Score: {{ sentiment_summary.most_positive.SentimentScore }}</footer>
+    </blockquote>
+    {% endif %}
+    {% if sentiment_summary.most_negative %}
+    <h5 class="text-danger mt-3">Most Negative Sentence</h5>
+    <blockquote class="blockquote">
+      <p>{{ sentiment_summary.most_negative.text }}</p>
+      <footer class="blockquote-footer">Score: {{ sentiment_summary.most_negative.SentimentScore }}</footer>
+    </blockquote>
+    {% endif %}
+    {% endif %}
+
+    <!-- Variable-Length Segments -->
+    {% if most_positive_variable_segment %}
+    <h4 class="text-success mt-4">Most Positive Variable-Length Segment</h4>
+    <blockquote class="blockquote">
+      <p>{{ most_positive_variable_segment.text }}</p>
+      <footer class="blockquote-footer">Score: {{ most_positive_variable_segment.score }}</footer>
+    </blockquote>
+    {% endif %}
+    {% if most_negative_variable_segment %}
+    <h4 class="text-danger mt-4">Most Negative Variable-Length Segment</h4>
+    <blockquote class="blockquote">
+      <p>{{ most_negative_variable_segment.text }}</p>
+      <footer class="blockquote-footer">Score: {{ most_negative_variable_segment.score }}</footer>
+    </blockquote>
+    {% endif %}
+
+  </div></div>
+  {% endif %}
 </div>
-{% endblock content %}
+{% endblock %}
+
+
