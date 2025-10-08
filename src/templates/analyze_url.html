@@ -67,7 +67,7 @@
     {% endif %}
 
     <!-- Original vs Repaired -->
-    {% if original_text and original_text != article.text %}
+    {% if force_segment and one_seg and original_text != article.text %}
     <div class="alert alert-warning border border-warning mt-3 p-3">
       <h6 class="text-warning mb-1">Original (Broken) Text:</h6>
       <code>{{ original_text }}</code>
