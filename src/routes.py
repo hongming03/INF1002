@@ -12,8 +12,9 @@ from newspaper import Article
 # Custom modules
 from data.data_loader import CryptoNewsData
 from analysis.sentiment_analysis import analyze_text
-from analysis.segmentation import all_segmentations, segment_text, get_full_dictionary
+from analysis.analyze_url import handle_analyze_url
 from reporting.analytics import get_sentiment_summary, get_chart_data
+
 
 import pandas as pd
 from datetime import datetime
@@ -78,9 +79,9 @@ def register_routes(app):
             most_negative_variable_segment=results["most_negative_variable_segment"]
         )
     
+    #test scenario for webpage segemnmtation.
     @app.route("/test-nospace")
     def test_nospace():
-        # just render your template directly
         return render_template("article_nospace.html")
 
 
@@ -91,86 +92,8 @@ def register_routes(app):
             return render_template("analyze_url.html")
 
         query = request.form.get("query", "").strip()
-        force_segment = request.form.get("force_segment")  # checkbox from form
+        force_segment = bool(request.form.get("force_segment"))
 
-        if not query:
-            return render_template("analyze_url.html", error="Please enter a valid URL, subject, or text.")
-
-        # Case 1: Handle full URL
-        if re.match(r"^https?://", query):
-            try:
-                # --- Handle local Flask route separately ---
-                if "127.0.0.1" in query or "localhost" in query:
-                    response = requests.get(query)
-                    html = response.text
-
-                    # Extract <p> tag content manually
-                    match = re.search(r"<p[^>]*>(.*?)</p>", html, re.DOTALL)
-                    article_text = match.group(1).strip() if match else ""
-                    article_title = "Crypto Sentiment Stress Test (Local Demo)"
-                else:
-                    # Normal external article
-                    article_obj = Article(query)
-                    article_obj.download()
-                    article_obj.parse()
-                    article_text = article_obj.text
-                    article_title = article_obj.title or "External Article"
-
-            except Exception as e:
-                return render_template("analyze_url.html", error=f"Could not fetch article: {e}")
-        else:
-            # Case 2: Handle plain text input
-            article_text = query
-            article_title = "Raw Text Input"
-
-        # Requirement 6: Word segmentation
-        original_text = article_text
-        one_seg = []
-        all_segs = []
-
-        if force_segment:
-            dictionary = get_full_dictionary()
-            text_lower = article_text.lower()
-
-            # --- Always run the fast single segmentation ---
-            one_seg = segment_text(text_lower, dictionary)
-
-            # --- Only run all_segmentations() for short inputs ---
-            if len(text_lower) <= 60:  # adjust cutoff as you like
-                all_segs = all_segmentations(text_lower, dictionary)
-            else:
-                all_segs = []  # skip heavy recursion for long text
-
-            # --- Use the repaired text if segmentation succeeded ---
-            if one_seg:
-                article_text = " ".join(one_seg)
-
-        # Sentiment analysis
-        phrase_results = analyze_text(article_text, mode="full")
-        sentence_results = analyze_text(article_text, mode="sentence")
-        sentiment_summary = sentence_results["summary"]
-
-        # Render
-        return render_template(
-            "analyze_url.html",
-            article={
-                "url": query if re.match(r"^https?://", query) else None,
-                "title": article_title,
-                "text": article_text,
-                "source": "External" if re.match(r"^https?://", query) else "Manual Input",
-                "date": datetime.today().strftime("%Y-%m-%d"),
-                "subject": "URL/Text Analysis"
-            },
-            original_text=original_text,
-            one_seg=one_seg,
-            all_segs=all_segs,
-            sentiment_summary=sentiment_summary,
-            most_positive=phrase_results["most_positive"],
-            most_negative=phrase_results["most_negative"],
-            most_positive_segment=phrase_results["most_positive_segment"],
-            most_negative_segment=phrase_results["most_negative_segment"],
-            most_positive_variable_segment=phrase_results["most_positive_variable_segment"],
-            most_negative_variable_segment=phrase_results["most_negative_variable_segment"]
-        )
-
+        # call the analyze_url handler
+        return handle_analyze_url(query, force_segment)
 
