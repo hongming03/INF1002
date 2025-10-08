@@ -3,3 +3,5 @@
 data/dataset/test.ft.txt
 src/__pycache__/
 src/afinn.egg-info
+__pycache__/
+*.pyc
