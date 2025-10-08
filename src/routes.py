@@ -32,6 +32,11 @@ def register_routes(app):
             avg_chart_data={"dates": [], "values": []},
             area_chart_data={"dates": [], "Positive": [], "Neutral": [], "Negative": []}
         )
+    
+    # Return a OK response body and 200 status code for health checks in docker-compose
+    @app.route("/health")
+    def health():
+        return "OK", 200
 
     @app.route("/subject/<subj>")
     def subject(subj):
