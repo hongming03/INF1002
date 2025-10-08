@@ -5,7 +5,6 @@ from typing import List, Set, Optional
 def segment_text(text: str, dictionary: Set[str]) -> List[str]:
     """
     Segment text into words using a dictionary (returns one valid segmentation).
-    Example: "thisisapen" -> ["this", "is", "a", "pen"]
     """
     # Always lowercase input for consistency with dictionary
     text = text.lower().strip()
@@ -21,33 +20,6 @@ def segment_text(text: str, dictionary: Set[str]) -> List[str]:
                 break
 
     return dp[n] if dp[n] else []
-
-
-def all_segmentations(text: str, dictionary: Set[str]) -> List[List[str]]:
-    """
-    Return all possible valid segmentations of `text` using DFS with memoization.
-    """
-    text = text.lower().strip()
-    memo = {}
-
-    def dfs(index: int) -> List[List[str]]:
-        if index == len(text):
-            return [[]]
-        if index in memo:
-            return memo[index]
-
-        results = []
-        for end in range(index + 1, len(text) + 1):
-            word = text[index:end]
-            if word in dictionary:
-                for seg in dfs(end):
-                    results.append([word] + seg)
-
-        memo[index] = results
-        return results
-
-    return dfs(0)
-
 
 # Dictionary Helper (NLTK + Crypto)
 
