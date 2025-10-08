@@ -1,18 +1,19 @@
 # routes.py
 
 # Standard library
-import re
+import re, requests
 from urllib.parse import unquote
+from datetime import datetime
 
 # Third-party libraries
 from flask import render_template, redirect, url_for, request
 from newspaper import Article
-# COwn modules
-from data.data_loader import CryptoNewsData
-from reporting.analytics import get_sentiment_summary, get_chart_data
-from analysis.sentiment_analysis import analyze_sentences, analyze_by_fullstop
-from models.analyzer import SentimentAnalyzer
 
+# Custom modules
+from data.data_loader import CryptoNewsData
+from analysis.sentiment_analysis import analyze_text
+from analysis.analyze_url import handle_analyze_url
+from reporting.analytics import get_sentiment_summary, get_chart_data
 
 
 import pandas as pd
@@ -36,7 +37,6 @@ def register_routes(app):
     def subject(subj):
         avg_score, subject_news = crypto_data.get_news_by_subject(subj)
 
-        # Use analytics module
         sentiment_summary = get_sentiment_summary(subject_news, avg_score)
         avg_chart_data, area_chart_data = get_chart_data(subject_news)
 
@@ -64,66 +64,36 @@ def register_routes(app):
             return "Article not found", 404
 
         article = article_df.iloc[0]
-        analyzer = SentimentAnalyzer()
-        analysis = analyze_sentences([article["text"]], analyzer)
+        results = analyze_text(article["text"], mode="full")
         subjects = crypto_data.get_subjects()
 
         return render_template(
             "article_sentiment.html",
             article=article,
             subjects=subjects,
-            **analysis
+            most_positive=results["most_positive"],
+            most_negative=results["most_negative"],
+            most_positive_segment=results["most_positive_segment"],
+            most_negative_segment=results["most_negative_segment"],
+            most_positive_variable_segment=results["most_positive_variable_segment"],
+            most_negative_variable_segment=results["most_negative_variable_segment"]
         )
     
+    #test scenario for webpage segemnmtation.
+    @app.route("/test-nospace")
+    def test_nospace():
+        return render_template("article_nospace.html")
 
-    #analyze url based on user input
+
+    #Web Scrape
     @app.route("/analyze_url", methods=["GET", "POST"])
     def analyze_url():
         if request.method == "GET":
             return render_template("analyze_url.html")
 
         query = request.form.get("query", "").strip()
-        if not query:
-            return render_template("analyze_url.html", error="Please enter a valid URL or subject.")
+        force_segment = bool(request.form.get("force_segment"))
 
-        # -----------------------------------
-        # If the query is a full URL
-        # -----------------------------------
-        if re.match(r"^https?://", query):
-            try:
-                article_obj = Article(query)
-                article_obj.download()
-                article_obj.parse()
+        # call the analyze_url handler
+        return handle_analyze_url(query, force_segment)
 
-                article_text = article_obj.text
-                article_title = article_obj.title or "External Article"
-
-                if not article_text:
-                    return render_template("analyze_url.html", error="No readable article text found. Try another link.")
-
-            except Exception as e:
-                return render_template("analyze_url.html", error=f"Could not fetch article: {e}")
-
-            # Run sentiment analysis
-            df = analyze_by_fullstop(article_text)
-            if df.empty:
-                return render_template("analyze_url.html", error="No sentences to analyze.")
-
-            avg_score = df["SentimentScore"].mean()
-            sentiment_summary = get_sentiment_summary(df, avg_score)
-
-            return render_template(
-                "analyze_url.html",
-                article={"url": query, "title": article_title, "text": article_text},
-                sentiment_summary=sentiment_summary
-            )
-
-        # -----------------------------------
-        # If the query is a subject
-        # -----------------------------------
-        subjects = crypto_data.get_subjects()
-        if query not in subjects:
-            return render_template("analyze_url.html", error=f"'{query}' is not a valid subject or link.")
-
-        return redirect(url_for("subject", subj=query))
-        # End of analyze_url route

@@ -19,13 +19,13 @@
           <!-- Sentiment Analysis -->
           <div class="card mb-4">
             <div class="card-body">
-              <h5 class="card-title">Most Positive Sentence</h5>
+              <h5 class="card-title">Most Positive Phrase</h5>
               <blockquote class="blockquote text-success">
                 <p>{{ most_positive.text }}</p>
                 <footer class="blockquote-footer">Score: {{ most_positive.score }}</footer>
               </blockquote>
 
-              <h5 class="card-title mt-4">Most Negative Sentence</h5>
+              <h5 class="card-title mt-4">Most Negative Phrase</h5>
               <blockquote class="blockquote text-danger">
                 <p>{{ most_negative.text }}</p>
                 <footer class="blockquote-footer">Score: {{ most_negative.score }}</footer>
@@ -87,7 +87,8 @@
               </a>
               <p class="description">
                 Source: {{ article.source }}<br>
-                Date: {{ article.date }}
+                Date: {{ article.date }}<br>
+                <small class="text-warning">⚠️ Some articles may be outdated or no longer available.</small>
               </p>
             </div>
           </p>

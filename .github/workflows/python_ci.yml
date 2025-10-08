@@ -29,10 +29,10 @@ jobs:
           black --check src/
         continue-on-error: true
 
-    #   - name: Run tests
-    #     run: |
-    #       coverage run -m unittest discover tests/
-    #       coverage report -m
+      - name: Run tests
+        run: |
+          coverage run -m unittest discover tests/unit -v
+          coverage report -m
 
   docker-build-and-push:
       runs-on: ubuntu-latest
