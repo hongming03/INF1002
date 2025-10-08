@@ -104,7 +104,6 @@ def handle_analyze_url(query: str, force_segment: bool):
             sentiment_summary["most_negative"]["text"] = "No distinctly negative sentence found."
             sentiment_summary["most_negative"]["SentimentScore"] = 0
 
-
         # Remove injected date from text and analyzer results
         article_text = re.sub(r"\s*Date:\s*\d{4}-\d{2}-\d{2}\s*$", "", article_text).strip()
 
@@ -125,7 +124,6 @@ def handle_analyze_url(query: str, force_segment: bool):
                     text = seg["text"].strip()
                     if re.fullmatch(r"Date[:\s\d\-]*", text) or not re.search(r"[a-zA-Z]", text):
                         phrase_results[key] = {"text": "", "score": 0}
-
 
         # --- Render Results ---
         return render_template(
@@ -167,4 +165,5 @@ def handle_analyze_url(query: str, force_segment: bool):
                 "analyze_url.html",
                 error="Unable to fetch the article. Please paste the text manually for analysis."
             )
+
 
