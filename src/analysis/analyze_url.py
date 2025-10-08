@@ -73,7 +73,7 @@ def handle_analyze_url(query: str, force_segment: bool):
                 single_letters = sum(len(w) == 1 for w in one_seg)
                 avg_len = sum(len(w) for w in one_seg) / total_words if total_words else 0
 
-                # Heuristic: skip segmentation if >50% are single letters OR avg word < 3
+                # skip segmentation if >50% are single letters OR avg word < 3
                 if single_letters / total_words < 0.5 and avg_len >= 3:
                     article_text = " ".join(one_seg)
                 else:
@@ -86,6 +86,46 @@ def handle_analyze_url(query: str, force_segment: bool):
         phrase_results = analyze_text(article_text, mode="full")
         sentence_results = analyze_text(article_text, mode="sentence")
         sentiment_summary = sentence_results.get("summary", {})
+
+        # Handle case where all scores are neutral or negative
+        most_pos = sentiment_summary.get("most_positive", {}).get("SentimentScore", 0)
+        most_neg = sentiment_summary.get("most_negative", {}).get("SentimentScore", 0)
+
+        # If both positive and negative are <= 0, replace positive text with message
+        if most_pos <= 0 and most_neg <= 0:
+            sentiment_summary["most_positive"]["text"] = "No clearly positive sentence found."
+            sentiment_summary["most_positive"]["SentimentScore"] = 0
+
+        # 🧠 only one sentence exists or both pos/neg are identical, adjust labels
+        pos_text = sentiment_summary.get("most_positive", {}).get("text", "").strip().lower()
+        neg_text = sentiment_summary.get("most_negative", {}).get("text", "").strip().lower()
+
+        if pos_text and neg_text and pos_text == neg_text:
+            sentiment_summary["most_negative"]["text"] = "No distinctly negative sentence found."
+            sentiment_summary["most_negative"]["SentimentScore"] = 0
+
+
+        # Remove injected date from text and analyzer results
+        article_text = re.sub(r"\s*Date:\s*\d{4}-\d{2}-\d{2}\s*$", "", article_text).strip()
+
+        # Clean all possible text fields in results (including variable-length segments)
+        for result_block in [phrase_results, sentiment_summary]:
+            for key, block in result_block.items():
+                if isinstance(block, dict) and "text" in block:
+                    block["text"] = re.sub(r"Date[:\s\d\-]*", "", block["text"]).strip()
+
+        # Specifically clean variable-length segment results if 'Date' slipped through
+        for key in [
+            "most_positive_variable_segment",
+            "most_negative_variable_segment",
+        ]:
+            if key in phrase_results:
+                seg = phrase_results[key]
+                if isinstance(seg, dict) and "text" in seg:
+                    text = seg["text"].strip()
+                    if re.fullmatch(r"Date[:\s\d\-]*", text) or not re.search(r"[a-zA-Z]", text):
+                        phrase_results[key] = {"text": "", "score": 0}
+
 
         # --- Render Results ---
         return render_template(
@@ -111,4 +151,20 @@ def handle_analyze_url(query: str, force_segment: bool):
         )
 
     except Exception as e:
-        return render_template("analyze_url.html", error=f"Unexpected error: {e}")
+        error_message = str(e)
+        if "403" in error_message or "Forbidden" in error_message:
+            return render_template(
+                "analyze_url.html",
+                error="This website does not support automatic scraping. You can still analyze the text manually by pasting it below."
+            )
+        elif "404" in error_message:
+            return render_template(
+                "analyze_url.html",
+                error="The article could not be found (404). Please check the URL or paste the text manually."
+            )
+        else:
+            return render_template(
+                "analyze_url.html",
+                error="Unable to fetch the article. Please paste the text manually for analysis."
+            )
+
