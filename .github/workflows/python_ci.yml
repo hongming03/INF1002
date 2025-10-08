@@ -31,7 +31,7 @@ jobs:
 
       - name: Run tests
         run: |
-          coverage run -m unittest discover tests/unit -v
+          coverage run -m pytest tests/unit -v
           coverage report -m
 
   docker-build-and-push:
