@@ -5,7 +5,6 @@ from typing import List, Set, Optional
 def segment_text(text: str, dictionary: Set[str]) -> List[str]:
     """
     Segment text into words using a dictionary (returns one valid segmentation).
-    Example: "thisisapen" -> ["this", "is", "a", "pen"]
     """
     # Always lowercase input for consistency with dictionary
     text = text.lower().strip()
@@ -67,7 +66,9 @@ def get_full_dictionary() -> Set[str]:
     "a", "major", "concern", "many", "believe", "that", "blockchain", "technology", "will",
     "transform", "industries", "from", "banking", "to", "supply", "chain", "management",
     "Regulatory", "uncertainty", "continues", "but", "governments", "are", "exploring",
-    "ways", "to", "integrate", "crypto", "safely", "into", "the", "economy"
+    "ways", "to", "integrate", "crypto", "safely", "into", "the", "economy", "government", "governments", "are", "management", "industry", "industries", 
+"assets", "digitalassets"
+
     }
 
     # Optional: try loading NLTK words (quietly)
