@@ -12,7 +12,6 @@ from newspaper import Article
 # Custom modules
 from data.data_loader import CryptoNewsData
 from analysis.sentiment_analysis import analyze_text
-from analysis.segmentation import all_segmentations, segment_text, get_full_dictionary
 from analysis.analyze_url import handle_analyze_url
 from reporting.analytics import get_sentiment_summary, get_chart_data
 
