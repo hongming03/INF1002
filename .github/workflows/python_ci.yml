@@ -64,3 +64,28 @@ jobs:
               ${{ vars.DOCKER_HUB_USERNAME }}/inf1002-app:${{ github.sha }}
               ${{ vars.DOCKER_HUB_USERNAME }}/inf1002-app:latest
 
+  deploy:
+    needs: docker-build-and-push
+    runs-on: [self-hosted, windows, x64]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: List workspace files
+        run: |
+          dir 
+          
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f .\kubernetes\
+
+      - name: Wait for deployments to be ready
+        run: |
+          kubectl rollout status deployment/web --timeout=120s
+          kubectl rollout status deployment/db --timeout=120s
+
+      - name: Get services info
+        run: |
+          kubectl get all
+          kubectl get svc
