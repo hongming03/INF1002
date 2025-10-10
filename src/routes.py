@@ -33,7 +33,7 @@ def register_routes(app):
             area_chart_data={"dates": [], "Positive": [], "Neutral": [], "Negative": []}
         )
     
-    # Return a OK response body and 200 status code for health checks in docker-compose
+    # Return a OK response body and 200 status code for health checks
     @app.route("/health")
     def health():
         return "OK", 200
