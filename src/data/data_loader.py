@@ -6,8 +6,8 @@ class CryptoNewsData:
     def __init__(self, csv_path=None):
         if csv_path is None:
             # Go up two levels from /src/data/ to project root
-            BASE_DIR = os.path.abspath(os.path.join(os.path.dirnam_DIR, "data", "cryptonews.csv"e(__file__), "..", ".."))
-            csv_path = os.path.join(BASE)  # Loads data from our dataset.
+            BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+            csv_path = os.path.join(BASE_DIR, "data", "cryptonews.csv")  # Loads data from our dataset
         self.csv_path = csv_path
         self.analyzer = SentimentAnalyzer()
         self.news = None
