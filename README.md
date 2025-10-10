@@ -1,3 +1,11 @@
+# INF1002_P7_3
+
+## Team Members
+- Tan Hong Ming (Admin Number: 2500582)
+- Wong Jinghong (Admin Number: 2503049)
+- Nixon Lee Disheng (Admin Number: 2500594)
+- Raynald Lim (Admin Number: 2501259)
+
 ## Sentiment Analysis on Crypto News Article
 [![Python CI](https://github.com/hongming03/INF1002/actions/workflows/python_ci.yml/badge.svg)](https://github.com/hongming03/INF1002/actions/workflows/python_ci.yml)
 
