@@ -7,7 +7,7 @@
 - Raynald Lim (Admin Number: 2501259)
 
 ## Sentiment Analysis on Crypto News Article
-[![Python CI](https://github.com/hongming03/INF1002/actions/workflows/python_ci.yml/badge.svg)](https://github.com/hongming03/INF1002/actions/workflows/python_ci.yml)
+[![Python CICD](https://github.com/hongming03/INF1002/actions/workflows/python_ci.yml/badge.svg)](https://github.com/hongming03/INF1002/actions/workflows/python_ci.yml)
 
 A Flask web application that performs sentiment analysis on cryptocurrency news articles from user-provided URLs and includes sentiment trend analysis over time using a crypto news dataset.
 
